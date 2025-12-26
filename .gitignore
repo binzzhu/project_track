@@ -1,0 +1,31 @@
+# 环境配置
+.env
+.env.local
+
+# 数据目录
+data/
+backups/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+
+# 临时文件
+tmp/
+temp/
+
+# 依赖（如果在本地开发）
+server/project_flow.db
+server/uploads/
+server/*.exe
+web/node_modules/
+web/dist/

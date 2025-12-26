@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # 后端服务
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: project-flow-backend
+    restart: unless-stopped
+    environment:
+      - SERVER_PORT=:8080
+      - DB_PATH=/app/data/project_flow.db
+      - UPLOAD_PATH=/app/uploads
+      - JWT_SECRET=${JWT_SECRET:-project-flow-secret-key-2024}
+      - TZ=Asia/Shanghai
+    volumes:
+      # 持久化数据库
+      - ./data/db:/app/data
+      # 持久化上传文件
+      - ./data/uploads:/app/uploads
+    networks:
+      - project-flow-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: project-flow-frontend
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-80}:80"
+    environment:
+      - TZ=Asia/Shanghai
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - project-flow-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+networks:
+  project-flow-network:
+    driver: bridge
+
+volumes:
+  db-data:
+  upload-data:

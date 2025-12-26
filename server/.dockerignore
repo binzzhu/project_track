@@ -1,0 +1,46 @@
+# Go编译产物
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+main
+
+# 测试文件
+*.test
+
+# 输出目录
+/bin/
+/dist/
+/output/
+
+# 数据库文件
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# 上传目录
+/uploads/
+
+# IDE文件
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# 文档
+*.md
+LICENSE
+
+# 测试覆盖
+coverage.txt
+coverage.html
+
+# 日志
+*.log

@@ -1,0 +1,41 @@
+# 依赖目录
+node_modules/
+
+# 构建输出
+dist/
+build/
+
+# 日志
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 编辑器目录
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 环境文件
+.env
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+
+# 测试覆盖
+coverage/
+
+# 缓存
+.cache/
+.eslintcache
+
+# Nginx配置会单独复制
+# nginx.conf
