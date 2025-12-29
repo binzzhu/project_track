@@ -167,9 +167,10 @@ func SetupRoutes(r *gin.Engine) {
 				expenses.POST("", expenseCtrl.Create)
 				expenses.PUT("/:id", expenseCtrl.Update)
 				expenses.DELETE("/:id", expenseCtrl.Delete)
-				expenses.POST("/:id/voucher", expenseCtrl.UploadVoucher)
-				expenses.GET("/:id/voucher", expenseCtrl.DownloadVoucher)
-				expenses.DELETE("/:id/voucher", expenseCtrl.DeleteVoucher)
+				// 导入功能
+				expenses.POST("/import", expenseCtrl.ImportExpenses)
+				// 一键删除（仅管理员）
+				expenses.DELETE("/all", middleware.RoleMiddleware(config.RoleAdmin), expenseCtrl.DeleteAll)
 			}
 		}
 	}

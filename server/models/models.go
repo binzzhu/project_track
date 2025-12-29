@@ -227,20 +227,76 @@ type ProjectMember struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// Expense 费用记录模型
+// Expense 费用记录模型（基于财务模板）
 type Expense struct {
-	ID             uint           `gorm:"primaryKey" json:"id"`
-	ProjectID      uint           `gorm:"not null" json:"project_id"` // 关联项目
-	Project        *Project       `gorm:"foreignKey:ProjectID" json:"project,omitempty"`
-	ExpenseType    string         `gorm:"size:50;not null" json:"expense_type"` // 费用类型：labor/direct/outsourcing/other
-	Amount         float64        `gorm:"not null" json:"amount"`               // 费用金额
-	ExpenseDate    *time.Time     `gorm:"not null" json:"expense_date"`         // 费用发生日期
-	Description    string         `gorm:"type:text" json:"description"`         // 费用说明
-	ReimbursedBy   uint           `gorm:"not null" json:"reimbursed_by"`        // 报账人ID
-	ReimbursedUser *User          `gorm:"foreignKey:ReimbursedBy" json:"reimbursed_user,omitempty"`
-	VoucherPath    string         `gorm:"size:1000" json:"voucher_path"` // 凭据文件路径（多个文件用逗号分隔）
-	Remark         string         `gorm:"type:text" json:"remark"`       // 备注
-	CreatedAt      time.Time      `json:"created_at"`
-	UpdatedAt      time.Time      `json:"updated_at"`
-	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+	ID uint `gorm:"primaryKey" json:"id"`
+	// 关联项目信息
+	ProjectID   *uint    `gorm:"default:null" json:"project_id"` // 系统内项目ID（可为空，未归类时为null）
+	Project     *Project `gorm:"foreignKey:ProjectID;constraint:OnDelete:SET NULL" json:"project,omitempty"`
+	ProjectCode string   `gorm:"size:100" json:"project_code"` // 关联项目编码（来自Excel）
+
+	// 单位信息
+	UnitCode string `gorm:"size:100" json:"unit_code"` // 单位编号
+	UnitName string `gorm:"size:200" json:"unit_name"` // 单位名称
+
+	// 单据信息
+	DocumentNo        string `gorm:"size:100" json:"document_no"`         // 单据编号
+	BusinessScene     string `gorm:"size:100" json:"business_scene"`      // 业务场景
+	CrossIndustryCode string `gorm:"size:100" json:"cross_industry_code"` // 跨行业业务编码
+	IsProjectExpense  string `gorm:"size:10" json:"is_project_expense"`   // 是否属于项目开支
+	Summary           string `gorm:"type:text" json:"summary"`            // 摘要
+
+	// 报账人信息
+	DepartmentName       string `gorm:"size:100" json:"department_name"` // 部门名称
+	ReimbursedBy         uint   `json:"reimbursed_by"`                   // 报账人ID（系统用户）
+	ReimbursedUser       *User  `gorm:"foreignKey:ReimbursedBy" json:"reimbursed_user,omitempty"`
+	ReimbursedPersonName string `gorm:"size:100" json:"reimbursed_person_name"` // 报账人姓名（来自Excel）
+
+	// 单据状态
+	DocumentStatus string `gorm:"size:50" json:"document_status"` // 单据状态
+	FrozenStatus   string `gorm:"size:50" json:"frozen_status"`   // 冻结状态
+
+	// 金额信息
+	ReimbursementAmount  float64 `gorm:"default:0" json:"reimbursement_amount"`    // 报账金额
+	PaymentAmount        float64 `gorm:"default:0" json:"payment_amount"`          // 支付金额
+	WriteOffAmount       float64 `gorm:"default:0" json:"write_off_amount"`        // 核销金额
+	InvoiceAmountExclTax float64 `gorm:"default:0" json:"invoice_amount_excl_tax"` // 发票不含税金额
+	InvoiceAmountInclTax float64 `gorm:"default:0" json:"invoice_amount_incl_tax"` // 发票含税金额
+
+	// 流程信息
+	CurrentProcess   string `gorm:"size:100" json:"current_process"`   // 当前处理环节
+	CurrentProcessor string `gorm:"size:100" json:"current_processor"` // 当前处理人
+	SharedProcess    string `gorm:"size:100" json:"shared_process"`    // 共享处理环节
+	SharedProcessor  string `gorm:"size:100" json:"shared_processor"`  // 共享处理人
+
+	// 实物信息
+	PhysicalStatus   string `gorm:"size:50" json:"physical_status"`    // 实物状态
+	PhysicalLocation string `gorm:"size:200" json:"physical_location"` // 实物位置
+
+	// 单据类型
+	DocumentType     string `gorm:"size:50" json:"document_type"`       // 单据类型
+	DocumentTypeName string `gorm:"size:100" json:"document_type_name"` // 单据类型名称
+
+	// 供应商信息
+	SupplierCode string `gorm:"size:100" json:"supplier_code"` // 供应商编号
+	SupplierName string `gorm:"size:200" json:"supplier_name"` // 供应商名称
+
+	// 时间信息
+	CreateDocTime *time.Time `json:"create_doc_time"` // 制单时间
+	SubmitTime    *time.Time `json:"submit_time"`     // 提交时间
+
+	// 其他信息
+	InternalCode   string `gorm:"size:100" json:"internal_code"`   // 内码
+	PaymentAccount string `gorm:"size:100" json:"payment_account"` // 付款账号
+
+	// 系统字段
+	ExpenseType  string         `gorm:"size:20" json:"expense_type"`        // 费用类型: labor(人工), direct(直接投入), outsourcing(委托研发), other(其他)
+	VoucherPath  string         `gorm:"size:1000" json:"voucher_path"`      // 凭证文件路径（多个文件用逗号分隔）
+	Remark       string         `gorm:"type:text" json:"remark"`            // 备注
+	IsClassified bool           `gorm:"default:false" json:"is_classified"` // 是否已归类到项目
+	CreatedBy    uint           `json:"created_by"`
+	Creator      *User          `gorm:"foreignKey:CreatedBy" json:"creator,omitempty"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 }

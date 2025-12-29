@@ -10,6 +10,7 @@ import (
 // AutoMigrate 自动迁移数据库表
 func AutoMigrate() {
 	db := config.GetDB()
+
 	err := db.AutoMigrate(
 		&User{},
 		&Role{},

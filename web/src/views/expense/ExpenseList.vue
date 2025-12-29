@@ -1,6 +1,6 @@
 <template>
   <div class="expense-list">
-    <!-- 费用报表统计 -->
+    <!-- 费用执行情况报表 -->
     <el-card class="statistics-card">
       <template #header>
         <div class="card-header">
@@ -11,66 +11,101 @@
         </div>
       </template>
       <el-table v-loading="statsLoading" :data="comparisonData" border stripe max-height="400">
-        <el-table-column prop="project_name" label="项目名称" min-width="180" align="center" fixed />
+        <el-table-column label="项目名称" min-width="200" align="center" fixed>
+          <template #default="{ row }">
+            <span v-if="row.innovation_code">{{ row.innovation_code }} - {{ row.project_name }}</span>
+            <span v-else>{{ row.project_name }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="人工费用" align="center">
-          <el-table-column prop="labor_budget" label="预算(元)" width="120" align="center">
+          <el-table-column prop="labor_budget" label="预算(元)" width="120" align="right">
             <template #default="{ row }">{{ row.labor_budget?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
-          <el-table-column prop="labor_actual" label="实际(元)" width="120" align="center">
+          <el-table-column prop="labor_actual" label="实际(元)" width="120" align="right">
             <template #default="{ row }">{{ row.labor_actual?.toFixed(2) || '0.00' }}</template>
+          </el-table-column>
+          <el-table-column prop="labor_rate" label="执行率(%)" width="100" align="right">
+            <template #default="{ row }">{{ row.labor_rate?.toFixed(1) || '0.0' }}%</template>
           </el-table-column>
         </el-table-column>
         <el-table-column label="直接投入费用" align="center">
-          <el-table-column prop="direct_budget" label="预算(元)" width="120" align="center">
+          <el-table-column prop="direct_budget" label="预算(元)" width="120" align="right">
             <template #default="{ row }">{{ row.direct_budget?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
-          <el-table-column prop="direct_actual" label="实际(元)" width="120" align="center">
+          <el-table-column prop="direct_actual" label="实际(元)" width="120" align="right">
             <template #default="{ row }">{{ row.direct_actual?.toFixed(2) || '0.00' }}</template>
+          </el-table-column>
+          <el-table-column prop="direct_rate" label="执行率(%)" width="100" align="right">
+            <template #default="{ row }">{{ row.direct_rate?.toFixed(1) || '0.0' }}%</template>
           </el-table-column>
         </el-table-column>
         <el-table-column label="委托研发费用" align="center">
-          <el-table-column prop="outsourcing_budget" label="预算(元)" width="120" align="center">
+          <el-table-column prop="outsourcing_budget" label="预算(元)" width="120" align="right">
             <template #default="{ row }">{{ row.outsourcing_budget?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
-          <el-table-column prop="outsourcing_actual" label="实际(元)" width="120" align="center">
+          <el-table-column prop="outsourcing_actual" label="实际(元)" width="120" align="right">
             <template #default="{ row }">{{ row.outsourcing_actual?.toFixed(2) || '0.00' }}</template>
+          </el-table-column>
+          <el-table-column prop="outsourcing_rate" label="执行率(%)" width="100" align="right">
+            <template #default="{ row }">{{ row.outsourcing_rate?.toFixed(1) || '0.0' }}%</template>
           </el-table-column>
         </el-table-column>
         <el-table-column label="其他费用" align="center">
-          <el-table-column prop="other_budget" label="预算(元)" width="120" align="center">
+          <el-table-column prop="other_budget" label="预算(元)" width="120" align="right">
             <template #default="{ row }">{{ row.other_budget?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
-          <el-table-column prop="other_actual" label="实际(元)" width="120" align="center">
+          <el-table-column prop="other_actual" label="实际(元)" width="120" align="right">
             <template #default="{ row }">{{ row.other_actual?.toFixed(2) || '0.00' }}</template>
+          </el-table-column>
+          <el-table-column prop="other_rate" label="执行率(%)" width="100" align="right">
+            <template #default="{ row }">{{ row.other_rate?.toFixed(1) || '0.0' }}%</template>
           </el-table-column>
         </el-table-column>
         <el-table-column label="合计" align="center" fixed="right">
-          <el-table-column prop="total_budget" label="预算(元)" width="130" align="center">
+          <el-table-column prop="total_budget" label="预算(元)" width="130" align="right">
             <template #default="{ row }">{{ row.total_budget?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
-          <el-table-column prop="total_actual" label="实际(元)" width="130" align="center">
+          <el-table-column prop="total_actual" label="实际(元)" width="130" align="right">
             <template #default="{ row }">{{ row.total_actual?.toFixed(2) || '0.00' }}</template>
+          </el-table-column>
+          <el-table-column prop="total_rate" label="执行率(%)" width="100" align="right">
+            <template #default="{ row }">{{ row.total_rate?.toFixed(1) || '0.0' }}%</template>
           </el-table-column>
         </el-table-column>
       </el-table>
     </el-card>
 
     <el-card class="search-card">
-      <el-form :inline="true" :model="searchForm">
-        <el-form-item label="项目">
-          <el-select v-model="searchForm.project_id" placeholder="全部项目" clearable filterable style="width: 200px;">
-            <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
+      <el-form :inline="true" :model="searchForm" class="search-form">
+        <el-form-item label="项目编码">
+          <el-select v-model="searchForm.project_code" placeholder="请选择项目" clearable filterable style="width: 280px;">
+            <el-option 
+              v-for="project in projects" 
+              :key="project.innovation_code" 
+              :label="`${project.innovation_code} - ${project.name}`" 
+              :value="project.innovation_code" 
+            />
           </el-select>
         </el-form-item>
-        <el-form-item label="费用类型">
-          <el-select v-model="searchForm.expense_type" placeholder="全部" clearable style="width: 150px;">
-            <el-option label="人工费用" value="labor" />
-            <el-option label="直接投入费用" value="direct" />
-            <el-option label="委托研发费用" value="outsourcing" />
-            <el-option label="其他费用" value="other" />
+        <el-form-item label="报账人">
+          <el-input v-model="searchForm.reimbursed_person_name" placeholder="请输入报账人姓名" clearable style="width: 150px;" />
+        </el-form-item>
+        <el-form-item label="是否项目开支">
+          <el-select v-model="searchForm.is_project_expense" placeholder="全部" clearable style="width: 130px;">
+            <el-option label="是" value="是" />
+            <el-option label="否" value="否" />
           </el-select>
         </el-form-item>
-        <el-form-item>
+        <el-form-item label="单据编号">
+          <el-input v-model="searchForm.document_no" placeholder="请输入单据编号" clearable style="width: 180px;" />
+        </el-form-item>
+        <el-form-item label="归类状态">
+          <el-select v-model="searchForm.is_classified" placeholder="全部" clearable style="width: 120px;">
+            <el-option label="已归类" :value="true" />
+            <el-option label="未归类" :value="false" />
+          </el-select>
+        </el-form-item>
+        <el-form-item class="search-button-item">
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="resetSearch">重置</el-button>
         </el-form-item>
@@ -78,84 +113,90 @@
     </el-card>
 
     <div class="action-bar">
+      <el-button type="success" @click="showImportDialog">
+        <el-icon><Upload /></el-icon> 导入Excel
+      </el-button>
       <el-button type="primary" @click="showCreateDialog">
         <el-icon><Plus /></el-icon> 添加费用记录
+      </el-button>
+      <el-button v-if="userStore.isAdmin" type="danger" @click="handleDeleteAll">
+        <el-icon><Delete /></el-icon> 一键删除所有记录
       </el-button>
     </div>
 
     <el-card>
-      <el-table v-loading="loading" :data="expenses" stripe :expand-row-keys="expandedRows" row-key="id">
-        <el-table-column type="expand">
+      <el-table v-loading="loading" :data="expenses" stripe border>
+        <el-table-column label="关联项目" width="280" header-align="center" align="center" show-overflow-tooltip>
           <template #default="{ row }">
-            <div v-if="hasVoucher(row)" class="voucher-expand">
-              <div class="voucher-title">凭证文件：</div>
-              <div class="voucher-files">
-                <div 
-                  v-for="(voucher, index) in getVoucherList(row)" 
-                  :key="index" 
-                  class="voucher-item"
-                >
-                  <el-link 
-                    type="primary" 
-                    @click="handleDownloadVoucher(row.id, index)"
-                    class="voucher-file-link"
-                  >
-                    <el-icon><Document /></el-icon>
-                    {{ voucher.name }}
-                  </el-link>
-                  <el-button 
-                    v-if="canDeleteVoucher(row)"
-                    type="danger" 
-                    link 
-                    size="small"
-                    @click="handleDeleteVoucher(row, index)"
-                    class="voucher-delete-btn"
-                  >
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
-                </div>
-              </div>
-            </div>
+            <span v-if="row.project && row.project.innovation_code">
+              {{ row.project.innovation_code }} - {{ row.project.name }}
+            </span>
+            <span v-else-if="row.project_code">
+              {{ row.project_code }}
+            </span>
+            <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="project" label="项目名称" min-width="180" header-align="center" align="center">
-          <template #default="{ row }">{{ row.project?.name || '-' }}</template>
-        </el-table-column>
-        <el-table-column prop="expense_type" label="费用类型" width="130" header-align="center" align="center">
+        <el-table-column label="费用类型" width="130" header-align="center" align="center">
           <template #default="{ row }">
-            <el-tag>{{ expenseTypeLabels[row.expense_type] }}</el-tag>
+            <el-tag v-if="row.expense_type === 'labor'" type="success" size="small">人工费用</el-tag>
+            <el-tag v-else-if="row.expense_type === 'direct'" type="primary" size="small">直接投入费用</el-tag>
+            <el-tag v-else-if="row.expense_type === 'outsourcing'" type="warning" size="small">委托研发费用</el-tag>
+            <el-tag v-else-if="row.expense_type === 'other'" type="info" size="small">其他费用</el-tag>
+            <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="amount" label="金额(元)" width="120" header-align="center" align="center">
-          <template #default="{ row }">{{ row.amount?.toFixed(2) }}</template>
-        </el-table-column>
-        <el-table-column prop="expense_date" label="费用日期" width="120" header-align="center" align="center">
-          <template #default="{ row }">{{ formatDate(row.expense_date) }}</template>
-        </el-table-column>
-        <el-table-column prop="description" label="费用说明" min-width="150" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="reimbursed_user" label="报账人" width="100" header-align="center" align="center">
-          <template #default="{ row }">{{ row.reimbursed_user?.name || '-' }}</template>
-        </el-table-column>
-        <el-table-column prop="created_at" label="创建时间" width="160" header-align="center" align="center">
-          <template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
-        </el-table-column>
-        <el-table-column prop="voucher_path" label="凭证" width="100" header-align="center" align="center">
+        <el-table-column prop="unit_code" label="单位编号" width="100" header-align="center" align="center" />
+        <el-table-column prop="unit_name" label="单位名称" width="200" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="document_no" label="单据编号" width="180" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="business_scene" label="业务场景" width="120" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="cross_industry_code" label="跨行业业务编码" width="150" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="summary" label="摘要" min-width="200" header-align="center" align="left" show-overflow-tooltip />
+        <el-table-column prop="department_name" label="部门名称" width="120" header-align="center" align="center" />
+        <el-table-column prop="reimbursed_person_name" label="报账人" width="100" header-align="center" align="center" />
+        <el-table-column prop="document_status" label="单据状态" width="100" header-align="center" align="center">
           <template #default="{ row }">
-            <el-button 
-              v-if="hasVoucher(row)" 
-              type="success" 
-              link 
-              @click="toggleExpand(row)"
-            >
-              {{ getVoucherCount(row) }}个文件
-            </el-button>
-            <el-tag v-else type="info" size="small">未上传</el-tag>
+            <el-tag v-if="row.document_status" size="small">{{ row.document_status }}</el-tag>
+            <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" header-align="center" align="center" fixed="right">
+        <el-table-column prop="frozen_status" label="冻结状态" width="100" header-align="center" align="center" />
+        <el-table-column prop="reimbursement_amount" label="报账金额" width="110" header-align="center" align="right">
+          <template #default="{ row }">{{ row.reimbursement_amount ? row.reimbursement_amount.toFixed(2) : '0.00' }}</template>
+        </el-table-column>
+        <el-table-column prop="payment_amount" label="支付金额" width="110" header-align="center" align="right">
+          <template #default="{ row }">{{ row.payment_amount ? row.payment_amount.toFixed(2) : '0.00' }}</template>
+        </el-table-column>
+        <el-table-column prop="write_off_amount" label="核销金额" width="110" header-align="center" align="right">
+          <template #default="{ row }">{{ row.write_off_amount ? row.write_off_amount.toFixed(2) : '0.00' }}</template>
+        </el-table-column>
+        <el-table-column prop="invoice_amount_excl_tax" label="发票不含税金额" width="140" header-align="center" align="right">
+          <template #default="{ row }">{{ row.invoice_amount_excl_tax ? row.invoice_amount_excl_tax.toFixed(2) : '0.00' }}</template>
+        </el-table-column>
+        <el-table-column prop="invoice_amount_incl_tax" label="发票含税金额" width="140" header-align="center" align="right">
+          <template #default="{ row }">{{ row.invoice_amount_incl_tax ? row.invoice_amount_incl_tax.toFixed(2) : '0.00' }}</template>
+        </el-table-column>
+        <el-table-column prop="current_process" label="当前处理环节" width="120" header-align="center" align="center" />
+        <el-table-column prop="current_processor" label="当前处理人" width="120" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="physical_status" label="实物状态" width="100" header-align="center" align="center" />
+        <el-table-column prop="physical_location" label="实物位置" width="120" header-align="center" align="center" />
+        <el-table-column prop="document_type" label="单据类型" width="100" header-align="center" align="center" />
+        <el-table-column prop="document_type_name" label="单据类型名称" width="140" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="supplier_code" label="供应商编号" width="160" header-align="center" align="center" />
+        <el-table-column prop="supplier_name" label="供应商名称" width="180" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="create_doc_time" label="制单时间" width="160" header-align="center" align="center">
+          <template #default="{ row }">{{ row.create_doc_time ? new Date(row.create_doc_time).toLocaleString('zh-CN') : '-' }}</template>
+        </el-table-column>
+        <el-table-column prop="submit_time" label="提交时间" width="160" header-align="center" align="center">
+          <template #default="{ row }">{{ row.submit_time ? new Date(row.submit_time).toLocaleString('zh-CN') : '-' }}</template>
+        </el-table-column>
+        <el-table-column prop="internal_code" label="内码" width="300" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="shared_process" label="共享处理环节" width="120" header-align="center" align="center" />
+        <el-table-column prop="shared_processor" label="共享处理人" width="150" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="payment_account" label="付款账号" width="150" header-align="center" align="center" />
+        <el-table-column label="操作" width="150" header-align="center" align="center" fixed="right">
           <template #default="{ row }">
             <el-button v-if="canEdit(row)" type="primary" link @click="showEditDialog(row)">编辑</el-button>
-            <el-button v-if="canUploadVoucher(row)" type="success" link @click="showVoucherDialog(row)">上传凭证</el-button>
             <el-popconfirm v-if="canDelete(row)" title="确定删除该费用记录吗？" @confirm="handleDelete(row.id)">
               <template #reference>
                 <el-button type="danger" link>删除</el-button>
@@ -181,29 +222,49 @@
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑费用记录' : '添加费用记录'" width="600px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="关联项目" prop="project_id">
-          <el-select v-model="form.project_id" placeholder="请选择项目" filterable style="width: 100%;">
-            <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
+          <el-select v-model="form.project_id" placeholder="请选择项目（可选）" filterable clearable style="width: 100%;" @change="handleProjectSelect">
+            <el-option 
+              v-for="project in projects" 
+              :key="project.id" 
+              :label="`${project.innovation_code} - ${project.name}`" 
+              :value="project.id" 
+            />
           </el-select>
         </el-form-item>
+        <el-form-item label="单据编号" prop="document_no">
+          <el-input v-model="form.document_no" placeholder="请输入单据编号" />
+        </el-form-item>
         <el-form-item label="费用类型" prop="expense_type">
-          <el-select v-model="form.expense_type" placeholder="请选择费用类型" style="width: 100%;">
+          <el-select v-model="form.expense_type" placeholder="请选择费用类型" clearable style="width: 100%;">
             <el-option label="人工费用" value="labor" />
             <el-option label="直接投入费用" value="direct" />
             <el-option label="委托研发费用" value="outsourcing" />
             <el-option label="其他费用" value="other" />
           </el-select>
         </el-form-item>
-        <el-form-item label="费用金额" prop="amount">
-          <el-input-number v-model="form.amount" :min="0" :precision="2" :controls="false" placeholder="请输入金额" style="width: 100%;" />
+        <el-form-item label="报账金额" prop="reimbursement_amount">
+          <el-input-number v-model="form.reimbursement_amount" :min="0" :precision="2" :controls="false" placeholder="请输入金额" style="width: 100%;" />
         </el-form-item>
-        <el-form-item label="费用日期" prop="expense_date">
-          <el-date-picker v-model="form.expense_date" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%;" />
+        <el-form-item label="发票不含税金额" prop="invoice_amount_excl_tax">
+          <el-input-number v-model="form.invoice_amount_excl_tax" :min="0" :precision="2" :controls="false" placeholder="请输入不含税金额" style="width: 100%;" />
         </el-form-item>
-        <el-form-item label="费用说明" prop="description">
-          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入费用说明" />
+        <el-form-item label="发票含税金额" prop="invoice_amount_incl_tax">
+          <el-input-number v-model="form.invoice_amount_incl_tax" :min="0" :precision="2" :controls="false" placeholder="请输入含税金额" style="width: 100%;" />
         </el-form-item>
-        <el-form-item label="备注">
-          <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="其他备注信息" />
+        <el-form-item label="摘要" prop="summary">
+          <el-input v-model="form.summary" type="textarea" :rows="3" placeholder="请输入费用摘要" />
+        </el-form-item>
+        <el-form-item label="业务场景">
+          <el-input v-model="form.business_scene" placeholder="业务场景" />
+        </el-form-item>
+        <el-form-item label="部门名称">
+          <el-input v-model="form.department_name" placeholder="部门名称" />
+        </el-form-item>
+        <el-form-item label="单据状态">
+          <el-input v-model="form.document_status" placeholder="单据状态" />
+        </el-form-item>
+        <el-form-item label="供应商名称">
+          <el-input v-model="form.supplier_name" placeholder="供应商名称" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -212,24 +273,25 @@
       </template>
     </el-dialog>
 
-    <!-- 上传凭证弹窗 -->
-    <el-dialog v-model="voucherDialogVisible" title="上传凭证" width="500px">
+    <!-- 导入Excel弹窗 -->
+    <el-dialog v-model="importDialogVisible" title="导入费用记录" width="500px">
       <el-upload
         ref="uploadRef"
         :auto-upload="false"
         :on-change="handleFileChange"
-        multiple
+        :limit="1"
+        accept=".xlsx,.xls"
         drag
       >
         <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-        <div class="el-upload__text">拖拽文件到此处或<em>点击上传</em></div>
+        <div class="el-upload__text">拖拽Excel文件到此处或<em>点击上传</em></div>
         <template #tip>
-          <div class="el-upload__tip">可上传发票、行程单等凭证文件，支持多个文件</div>
+          <div class="el-upload__tip">仅支持.xlsx或.xls格式的Excel文件，需按财务模板格式</div>
         </template>
       </el-upload>
       <template #footer>
-        <el-button @click="voucherDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="uploading" @click="handleUploadVoucher">上传</el-button>
+        <el-button @click="importDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="importing" @click="handleImport">导入</el-button>
       </template>
     </el-dialog>
   </div>
@@ -237,11 +299,10 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getExpenses, createExpense, updateExpense, deleteExpense, uploadVoucher, downloadVoucher, deleteVoucher, getProjectComparison } from '@/api/expense'
+import { getExpenses, createExpense, updateExpense, deleteExpense, getProjectComparison, importExpenses, deleteAllExpenses } from '@/api/expense'
 import { getProjects } from '@/api/project'
 import { useUserStore } from '@/stores/user'
-import { ElMessage } from 'element-plus'
-import { ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const userStore = useUserStore()
 
@@ -251,111 +312,52 @@ const expenses = ref([])
 const projects = ref([])
 const comparisonData = ref([])
 const dialogVisible = ref(false)
-const voucherDialogVisible = ref(false)
+const importDialogVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
-const uploading = ref(false)
+const importing = ref(false)
 const editId = ref(null)
-const currentExpense = ref(null)
-const expandedRows = ref([])
 const formRef = ref(null)
 const uploadRef = ref(null)
-const selectedFiles = ref([])
+const selectedFile = ref(null)
 
-const searchForm = reactive({ project_id: '', expense_type: '' })
+const searchForm = reactive({ 
+  project_code: '', 
+  reimbursed_person_name: '', 
+  is_project_expense: '', 
+  document_no: '', 
+  is_classified: null 
+})
 const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
-const form = reactive({ project_id: null, expense_type: '', amount: 0, expense_date: '', description: '', remark: '' })
-
-const expenseTypeLabels = { labor: '人工费用', direct: '直接投入费用', outsourcing: '委托研发费用', other: '其他费用' }
+const form = reactive({ 
+  project_id: null, 
+  project_code: '',
+  document_no: '', 
+  expense_type: '',
+  reimbursement_amount: 0, 
+  invoice_amount_excl_tax: 0,
+  invoice_amount_incl_tax: 0,
+  summary: '', 
+  business_scene: '',
+  department_name: '',
+  document_status: '',
+  supplier_name: ''
+})
 
 const rules = {
-  project_id: [{ required: true, message: '请选择项目', trigger: 'change' }],
-  expense_type: [{ required: true, message: '请选择费用类型', trigger: 'change' }],
-  amount: [{ required: true, message: '请输入费用金额', trigger: 'blur' }],
-  expense_date: [{ required: true, message: '请选择费用日期', trigger: 'change' }],
-  description: [{ required: true, message: '请输入费用说明', trigger: 'blur' }]
-}
-
-const formatDate = (dateStr) => dateStr ? dateStr.split('T')[0] : '-'
-const formatDateTime = (dateStr) => dateStr ? new Date(dateStr).toLocaleString('zh-CN') : '-'
-
-const hasVoucher = (row) => {
-  return row.voucher_path && row.voucher_path.trim() !== ''
-}
-
-const getVoucherCount = (row) => {
-  if (!row.voucher_path) return 0
-  return row.voucher_path.split(',').filter(p => p.trim()).length
-}
-
-const getVoucherPaths = (row) => {
-  if (!row.voucher_path) return []
-  return row.voucher_path.split(',').filter(p => p.trim())
-}
-
-const getVoucherList = (row) => {
-  const paths = getVoucherPaths(row)
-  return paths.map((path, index) => ({
-    index,
-    name: getVoucherFileName(path, index),
-    path
-  }))
-}
-
-const getVoucherFileName = (path, index) => {
-  if (!path) return `凭证${index + 1}`
-  // 从路径中提取文件名
-  const parts = path.split(/[\\\/]/)
-  const filename = parts[parts.length - 1]
-  
-  // 文件名格式：时间戳_原始文件名.ext
-  // 移除时间戳前缀，只保留原始文件名
-  const match = filename.match(/^\d+_(.+)$/)
-  if (match && match[1]) {
-    return match[1]  // 返回原始文件名
-  }
-  
-  // 如果不匹配，返回整个文件名
-  return filename
-}
-
-const toggleExpand = (row) => {
-  const index = expandedRows.value.indexOf(row.id)
-  if (index > -1) {
-    expandedRows.value.splice(index, 1)
-  } else {
-    expandedRows.value = [row.id]
-  }
-}
-
-const getRateType = (rate) => {
-  if (!rate || rate === 0) return 'info'
-  if (rate < 50) return 'danger'
-  if (rate < 80) return 'warning'
-  if (rate <= 100) return 'success'
-  return 'danger' // 超预算
+  document_no: [{ required: true, message: '请输入单据编号', trigger: 'blur' }],
+  reimbursement_amount: [{ required: true, message: '请输入报账金额', trigger: 'blur' }],
+  invoice_amount_excl_tax: [{ required: true, message: '请输入发票不含税金额', trigger: 'blur' }],
+  invoice_amount_incl_tax: [{ required: true, message: '请输入发票含税金额', trigger: 'blur' }],
+  summary: [{ required: true, message: '请输入费用摘要', trigger: 'blur' }]
 }
 
 const canEdit = (row) => {
-  // 只有系统管理员和费用记录创建者有权限编辑
   if (userStore.isAdmin) return true
   return row.reimbursed_by === userStore.userId
 }
 
 const canDelete = (row) => {
-  // 只有系统管理员和费用记录创建者有权限删除
-  if (userStore.isAdmin) return true
-  return row.reimbursed_by === userStore.userId
-}
-
-const canUploadVoucher = (row) => {
-  // 只有系统管理员和费用记录创建者有权限上传凭证
-  if (userStore.isAdmin) return true
-  return row.reimbursed_by === userStore.userId
-}
-
-const canDeleteVoucher = (row) => {
-  // 只有系统管理员和费用记录创建者有权限删除凭证
   if (userStore.isAdmin) return true
   return row.reimbursed_by === userStore.userId
 }
@@ -369,61 +371,6 @@ const fetchComparison = async () => {
     console.error('获取费用统计失败:', error)
   } finally {
     statsLoading.value = false
-  }
-}
-
-const handleDownloadVoucher = async (expenseId, index) => {
-  try {
-    const response = await downloadVoucher(expenseId, index)
-    const blob = new Blob([response.data])
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    
-    // 使用友好的文件名
-    const expense = expenses.value.find(e => e.id === expenseId)
-    const voucherList = expense ? getVoucherList(expense) : []
-    const filename = voucherList.find(v => v.index === index)?.name || `凭证_${index + 1}`
-    link.download = filename
-    
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-    
-    ElMessage.success('下载成功')
-  } catch (error) {
-    console.error('下载凭证失败:', error)
-    ElMessage.error('下载失败')
-  }
-}
-
-const handleDeleteVoucher = async (row, index) => {
-  try {
-    await ElMessageBox.confirm('确定要删除该凭证文件吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    await deleteVoucher(row.id, index)
-    ElMessage.success('删除成功')
-    
-    // 刷新列表
-    await fetchExpenses()
-    
-    // 如果该费用记录还有凭证，保持展开状态
-    const expense = expenses.value.find(e => e.id === row.id)
-    if (expense && hasVoucher(expense)) {
-      expandedRows.value = [row.id]
-    } else {
-      expandedRows.value = []
-    }
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除凭证失败:', error)
-      ElMessage.error('删除失败')
-    }
   }
 }
 
@@ -454,11 +401,33 @@ const fetchExpenses = async () => {
 }
 
 const handleSearch = () => { pagination.page = 1; fetchExpenses() }
-const resetSearch = () => { Object.assign(searchForm, { project_id: '', expense_type: '' }); handleSearch() }
+const resetSearch = () => { 
+  Object.assign(searchForm, { 
+    project_code: '', 
+    reimbursed_person_name: '', 
+    is_project_expense: '', 
+    document_no: '', 
+    is_classified: null 
+  }); 
+  handleSearch() 
+}
 
 const showCreateDialog = () => {
   isEdit.value = false
-  Object.assign(form, { project_id: null, expense_type: '', amount: 0, expense_date: '', description: '', remark: '' })
+  Object.assign(form, { 
+    project_id: null, 
+    project_code: '',
+    document_no: '', 
+    expense_type: '',
+    reimbursement_amount: 0, 
+    invoice_amount_excl_tax: 0,
+    invoice_amount_incl_tax: 0,
+    summary: '', 
+    business_scene: '',
+    department_name: '',
+    document_status: '',
+    supplier_name: ''
+  })
   dialogVisible.value = true
 }
 
@@ -467,13 +436,32 @@ const showEditDialog = (row) => {
   editId.value = row.id
   Object.assign(form, {
     project_id: row.project_id,
+    project_code: row.project_code || '',
+    document_no: row.document_no,
     expense_type: row.expense_type,
-    amount: row.amount,
-    expense_date: formatDate(row.expense_date),
-    description: row.description,
-    remark: row.remark
+    reimbursement_amount: row.reimbursement_amount,
+    invoice_amount_excl_tax: row.invoice_amount_excl_tax || 0,
+    invoice_amount_incl_tax: row.invoice_amount_incl_tax || 0,
+    summary: row.summary,
+    business_scene: row.business_scene,
+    department_name: row.department_name,
+    document_status: row.document_status,
+    supplier_name: row.supplier_name
   })
   dialogVisible.value = true
+}
+
+// 项目选择变化处理，自动填充创新项目编码
+const handleProjectSelect = (projectId) => {
+  if (projectId) {
+    const selectedProject = projects.value.find(p => p.id === projectId)
+    if (selectedProject && selectedProject.innovation_code) {
+      form.project_code = selectedProject.innovation_code
+    }
+  } else {
+    // 清空项目编码
+    form.project_code = ''
+  }
 }
 
 const handleSubmit = async () => {
@@ -492,6 +480,7 @@ const handleSubmit = async () => {
       }
       dialogVisible.value = false
       fetchExpenses()
+      fetchComparison()
     } catch (error) {
       console.error('提交失败:', error)
     } finally {
@@ -505,43 +494,91 @@ const handleDelete = async (id) => {
     await deleteExpense(id)
     ElMessage.success('删除成功')
     fetchExpenses()
+    fetchComparison()
   } catch (error) {
     console.error('删除失败:', error)
   }
 }
 
-const showVoucherDialog = (row) => {
-  currentExpense.value = row
-  selectedFiles.value = []
-  voucherDialogVisible.value = true
+const showImportDialog = () => {
+  selectedFile.value = null
+  importDialogVisible.value = true
 }
 
-const handleFileChange = (file, fileList) => {
-  selectedFiles.value = fileList
+const handleFileChange = (file) => {
+  selectedFile.value = file
 }
 
-const handleUploadVoucher = async () => {
-  if (selectedFiles.value.length === 0) {
-    ElMessage.warning('请选择文件')
+const handleImport = async () => {
+  if (!selectedFile.value) {
+    ElMessage.warning('请选择Excel文件')
     return
   }
 
-  uploading.value = true
+  importing.value = true
   try {
     const formData = new FormData()
-    selectedFiles.value.forEach(file => {
-      formData.append('files', file.raw)
-    })
+    formData.append('file', selectedFile.value.raw)
 
-    await uploadVoucher(currentExpense.value.id, formData)
-    ElMessage.success('上传成功')
-    voucherDialogVisible.value = false
+    const res = await importExpenses(formData)
+    const result = res.data
+    
+    // 更详细的提示信息
+    if (result.error_count > 0) {
+      // 构建失败信息
+      let errorMsg = `导入完成：新增${result.create_count || 0}条，更新${result.update_count || 0}条，失败${result.error_count}条`
+      
+      // 如果有错误信息，展示失败的单据编号
+      if (result.errors && result.errors.length > 0) {
+        errorMsg += '\n失败记录: ' + result.errors.join('、')
+      }
+      
+      ElMessage.warning({
+        message: errorMsg,
+        duration: 5000,
+        showClose: true
+      })
+    } else {
+      ElMessage.success(
+        result.message || `成功导入：新增${result.create_count || 0}条，更新${result.update_count || 0}条`
+      )
+    }
+    
+    importDialogVisible.value = false
     fetchExpenses()
+    fetchComparison()
   } catch (error) {
-    console.error('上传失败:', error)
+    console.error('导入失败:', error)
+    ElMessage.error('导入失败')
   } finally {
-    uploading.value = false
+    importing.value = false
   }
+}
+
+const handleDeleteAll = async () => {
+  ElMessageBox.confirm(
+    '确定要删除所有费用记录吗？此操作不可恢复！',
+    '警告',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  )
+    .then(async () => {
+      try {
+        const res = await deleteAllExpenses()
+        ElMessage.success(res.message || '删除成功')
+        fetchExpenses()
+        fetchComparison()
+      } catch (error) {
+        console.error('删除失败:', error)
+        ElMessage.error('删除失败')
+      }
+    })
+    .catch(() => {
+      // 用户取消
+    })
 }
 
 onMounted(() => {
@@ -562,56 +599,31 @@ onMounted(() => {
   align-items: center;
 }
 
-.search-card { margin-bottom: 20px; }
-.action-bar { margin-bottom: 20px; }
-.pagination { margin-top: 20px; justify-content: flex-end; }
-
-.voucher-expand {
-  padding: 10px 50px;
-  background-color: #f5f7fa;
+.search-card { 
+  margin-bottom: 20px; 
 }
 
-.voucher-title {
-  font-weight: 500;
-  color: #606266;
-  margin-bottom: 10px;
-}
-
-.voucher-files {
+.search-form {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  align-items: flex-end;
 }
 
-.voucher-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.search-form .el-form-item {
+  margin-bottom: 0;
 }
 
-.voucher-file-link {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 12px;
-  background-color: #fff;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  transition: all 0.3s;
+.search-button-item {
+  margin-left: auto;
+  margin-bottom: 0 !important;
 }
 
-.voucher-file-link:hover {
-  background-color: #ecf5ff;
-  border-color: #409eff;
+.action-bar { 
+  margin-bottom: 20px; 
 }
 
-.voucher-delete-btn {
-  padding: 4px;
-  opacity: 0.6;
-  transition: opacity 0.3s;
-}
-
-.voucher-delete-btn:hover {
-  opacity: 1;
+.pagination { 
+  margin-top: 20px; 
+  justify-content: flex-end; 
 }
 </style>

@@ -4,7 +4,7 @@
     <el-aside :width="isCollapse ? '64px' : '220px'" class="aside">
       <div class="logo">
         <el-icon size="24"><DataAnalysis /></el-icon>
-        <span v-show="!isCollapse">项目管理系统</span>
+        <span v-show="!isCollapse">研发项目管理系统</span>
       </div>
       <el-menu
         :default-active="currentRoute"

@@ -25,28 +25,6 @@ export function deleteExpense(id) {
   return request.delete(`/expenses/${id}`)
 }
 
-// 上传凭证文件
-export function uploadVoucher(id, formData) {
-  return request.post(`/expenses/${id}/voucher`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
-}
-
-// 下载凭证文件
-export function downloadVoucher(id, index) {
-  return request.get(`/expenses/${id}/voucher`, {
-    params: { index },
-    responseType: 'blob'
-  })
-}
-
-// 删除凭证文件
-export function deleteVoucher(id, index) {
-  return request.delete(`/expenses/${id}/voucher`, {
-    params: { index }
-  })
-}
-
 // 获取费用统计
 export function getExpenseStatistics(projectId) {
   return request.get('/expenses/statistics', {
@@ -57,4 +35,16 @@ export function getExpenseStatistics(projectId) {
 // 获取项目费用对比
 export function getProjectComparison() {
   return request.get('/expenses/comparison')
+}
+
+// 导入Excel费用记录
+export function importExpenses(formData) {
+  return request.post('/expenses/import', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+// 一键删除所有费用记录（仅管理员）
+export function deleteAllExpenses() {
+  return request.delete('/expenses/all')
 }

@@ -52,10 +52,6 @@
           </el-button>
         </el-form-item>
       </el-form>
-      
-      <div class="login-tips">
-        <p>默认管理员账号: admin / Admin@123</p>
-      </div>
     </div>
   </div>
 </template>
