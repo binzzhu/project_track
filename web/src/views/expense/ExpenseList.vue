@@ -1,10 +1,10 @@
 <template>
   <div class="expense-list">
-    <!-- 费用执行情况报表 -->
+    <!-- 研发项目费用执行情况报表 -->
     <el-card class="statistics-card">
       <template #header>
         <div class="card-header">
-          <span>费用执行情况报表</span>
+          <span>研发项目费用执行情况报表</span>
           <el-button type="primary" size="small" @click="fetchComparison">
             <el-icon><Refresh /></el-icon> 刷新
           </el-button>
@@ -73,6 +73,38 @@
           </el-table-column>
         </el-table-column>
       </el-table>
+    </el-card>
+
+    <!-- 非研发项目费用统计表 -->
+    <el-card class="statistics-card" style="margin-top: 20px;">
+      <template #header>
+        <div class="card-header">
+          <span>非研发项目费用统计表</span>
+          <el-button type="primary" size="small" @click="fetchNonProjectStats">
+            <el-icon><Refresh /></el-icon> 刷新
+          </el-button>
+        </div>
+      </template>
+      <div v-loading="nonProjectStatsLoading" class="horizontal-expense-table">
+        <table class="expense-stats-table">
+          <tbody>
+            <tr class="scene-row">
+              <td class="row-label">业务场景</td>
+              <td v-for="(item, index) in nonProjectStatsData" :key="'scene-' + index" class="data-cell">
+                {{ item.business_scene || '（未填写）' }}
+              </td>
+              <td class="total-label">合计</td>
+            </tr>
+            <tr class="amount-row">
+              <td class="row-label">费用（元）</td>
+              <td v-for="(item, index) in nonProjectStatsData" :key="'amount-' + index" class="data-cell amount-cell">
+                {{ item.total?.toFixed(2) || '0.00' }}
+              </td>
+              <td class="total-cell">{{ nonProjectGrandTotal.toFixed(2) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </el-card>
 
     <el-card class="search-card">
@@ -299,7 +331,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getExpenses, createExpense, updateExpense, deleteExpense, getProjectComparison, importExpenses, deleteAllExpenses } from '@/api/expense'
+import { getExpenses, createExpense, updateExpense, deleteExpense, getProjectComparison, getNonProjectExpenseStats, importExpenses, deleteAllExpenses } from '@/api/expense'
 import { getProjects } from '@/api/project'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -308,9 +340,12 @@ const userStore = useUserStore()
 
 const loading = ref(false)
 const statsLoading = ref(false)
+const nonProjectStatsLoading = ref(false)
 const expenses = ref([])
 const projects = ref([])
 const comparisonData = ref([])
+const nonProjectStatsData = ref([])
+const nonProjectGrandTotal = ref(0)
 const dialogVisible = ref(false)
 const importDialogVisible = ref(false)
 const isEdit = ref(false)
@@ -371,6 +406,19 @@ const fetchComparison = async () => {
     console.error('获取费用统计失败:', error)
   } finally {
     statsLoading.value = false
+  }
+}
+
+const fetchNonProjectStats = async () => {
+  nonProjectStatsLoading.value = true
+  try {
+    const res = await getNonProjectExpenseStats()
+    nonProjectStatsData.value = res.data?.data || []
+    nonProjectGrandTotal.value = res.data?.grand_total || 0
+  } catch (error) {
+    console.error('获取非研发项目费用统计失败:', error)
+  } finally {
+    nonProjectStatsLoading.value = false
   }
 }
 
@@ -481,6 +529,7 @@ const handleSubmit = async () => {
       dialogVisible.value = false
       fetchExpenses()
       fetchComparison()
+      fetchNonProjectStats() // 刷新非研发项目费用统计
     } catch (error) {
       console.error('提交失败:', error)
     } finally {
@@ -495,6 +544,7 @@ const handleDelete = async (id) => {
     ElMessage.success('删除成功')
     fetchExpenses()
     fetchComparison()
+    fetchNonProjectStats() // 刷新非研发项目费用统计
   } catch (error) {
     console.error('删除失败:', error)
   }
@@ -547,6 +597,7 @@ const handleImport = async () => {
     importDialogVisible.value = false
     fetchExpenses()
     fetchComparison()
+    fetchNonProjectStats() // 刷新非研发项目费用统计
   } catch (error) {
     console.error('导入失败:', error)
     ElMessage.error('导入失败')
@@ -571,6 +622,7 @@ const handleDeleteAll = async () => {
         ElMessage.success(res.message || '删除成功')
         fetchExpenses()
         fetchComparison()
+        fetchNonProjectStats() // 刷新非研发项目费用统计
       } catch (error) {
         console.error('删除失败:', error)
         ElMessage.error('删除失败')
@@ -585,6 +637,7 @@ onMounted(() => {
   fetchProjects()
   fetchExpenses()
   fetchComparison()
+  fetchNonProjectStats()
 })
 </script>
 
@@ -625,5 +678,104 @@ onMounted(() => {
 .pagination { 
   margin-top: 20px; 
   justify-content: flex-end; 
+}
+
+/* 非研发项目费用统计表样式 */
+.horizontal-expense-table {
+  overflow-x: auto;
+  position: relative;
+}
+
+.expense-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.expense-stats-table tbody tr {
+  border: 1px solid #EBEEF5;
+}
+
+.expense-stats-table tbody td {
+  padding: 12px 10px;
+  border: 1px solid #EBEEF5;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 14px;
+  color: #606266;
+}
+
+/* 行标签列 */
+.expense-stats-table .row-label {
+  background-color: #F5F7FA;
+  font-weight: normal;
+  color: #606266;
+  min-width: 100px;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  border-right: 1px solid #EBEEF5;
+}
+
+/* 数据单元格 */
+.expense-stats-table .data-cell {
+  background-color: #FFF;
+  color: #606266;
+  min-width: 120px;
+  font-weight: normal;
+}
+
+/* 费用数据单元格 */
+.expense-stats-table .amount-cell {
+  font-weight: normal;
+  color: #606266;
+}
+
+/* 合计标签 */
+.expense-stats-table .total-label {
+  background-color: #F5F7FA;
+  font-weight: normal;
+  color: #606266;
+  min-width: 100px;
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  border-left: 1px solid #EBEEF5;
+}
+
+/* 合计数据 */
+.expense-stats-table .total-cell {
+  background-color: #FFF;
+  font-weight: normal;
+  color: #606266;
+  min-width: 130px;
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  border-left: 1px solid #EBEEF5;
+}
+
+/* 业务场景行 */
+.expense-stats-table .scene-row {
+  background-color: #FFF;
+}
+
+/* 费用行 */
+.expense-stats-table .amount-row {
+  background-color: #FAFAFA;
+}
+
+/* 条纹样式 */
+.expense-stats-table .amount-row td {
+  background-color: #FAFAFA;
+}
+
+.expense-stats-table .amount-row .row-label,
+.expense-stats-table .amount-row .total-label {
+  background-color: #F5F7FA;
+}
+
+.expense-stats-table .amount-row .total-cell {
+  background-color: #FAFAFA;
 }
 </style>

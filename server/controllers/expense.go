@@ -357,6 +357,39 @@ func (ec *ExpenseController) GetProjectComparison(c *gin.Context) {
 	utils.Success(c, result)
 }
 
+// GetNonProjectExpenseStats 获取非研发项目费用统计（按业务场景分组）
+func (ec *ExpenseController) GetNonProjectExpenseStats(c *gin.Context) {
+	db := config.GetDB()
+
+	// 统计非研发项目费用（project_id为NULL且expense_type为NULL或为空）
+	type BusinessSceneStat struct {
+		BusinessScene string  `json:"business_scene"`
+		Total         float64 `json:"total"`
+	}
+
+	var stats []BusinessSceneStat
+	db.Model(&models.Expense{}).
+		Select("business_scene, SUM(reimbursement_amount) as total").
+		Where("project_id IS NULL AND (expense_type IS NULL OR expense_type = '')").
+		Group("business_scene").
+		Order("total DESC").
+		Scan(&stats)
+
+	// 计算总计
+	var grandTotal float64
+	for _, stat := range stats {
+		grandTotal += stat.Total
+	}
+
+	// 返回结果
+	result := map[string]interface{}{
+		"data":        stats,
+		"grand_total": grandTotal,
+	}
+
+	utils.Success(c, result)
+}
+
 // ImportExpenses 从 Excel 导入费用记录
 func (ec *ExpenseController) ImportExpenses(c *gin.Context) {
 	file, err := c.FormFile("file")

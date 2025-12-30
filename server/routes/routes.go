@@ -163,6 +163,7 @@ func SetupRoutes(r *gin.Engine) {
 				expenses.GET("", expenseCtrl.List)
 				expenses.GET("/statistics", expenseCtrl.GetStatistics)
 				expenses.GET("/comparison", expenseCtrl.GetProjectComparison)
+				expenses.GET("/non-project-stats", expenseCtrl.GetNonProjectExpenseStats) // 非研发项目费用统计
 				expenses.GET("/:id", expenseCtrl.Get)
 				expenses.POST("", expenseCtrl.Create)
 				expenses.PUT("/:id", expenseCtrl.Update)

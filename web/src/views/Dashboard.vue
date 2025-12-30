@@ -203,33 +203,49 @@
 
     <!-- 费用统计图表 -->
     <el-row :gutter="20" class="content-row">
-      <el-col :span="24">
+      <!-- 研发项目费用执行情况统计 (50%) -->
+      <el-col :span="12">
         <el-card class="content-card">
           <template #header>
             <div class="card-header">
-              <span>费用执行情况统计</span>
-              <div style="display: flex; align-items: center; gap: 15px;">
-                <el-select 
-                  v-model="selectedProjectId" 
-                  placeholder="请选择项目" 
-                  filterable 
-                  style="width: 300px;"
-                  @change="updateExpenseChart"
-                >
-                  <el-option
-                    v-for="project in expenseData"
-                    :key="project.project_id"
-                    :label="project.project_name"
-                    :value="project.project_id"
-                  />
-                </el-select>
-                <el-button type="primary" link @click="$router.push('/expenses')">
-                  查看详情 <el-icon><ArrowRight /></el-icon>
-                </el-button>
-              </div>
+              <span>研发项目费用执行情况统计</span>
+              <el-button type="primary" link @click="$router.push('/expenses')">
+                查看详情 <el-icon><ArrowRight /></el-icon>
+              </el-button>
             </div>
           </template>
-          <div ref="expenseChartRef" style="width: 100%; height: 400px;"></div>
+          <div style="margin-bottom: 10px;">
+            <el-select 
+              v-model="selectedProjectId" 
+              placeholder="请选择项目" 
+              filterable 
+              style="width: 100%;"
+              @change="updateExpenseChart"
+            >
+              <el-option
+                v-for="project in expenseData"
+                :key="project.project_id"
+                :label="project.project_name"
+                :value="project.project_id"
+              />
+            </el-select>
+          </div>
+          <div ref="expenseChartRef" style="width: 100%; height: 350px;"></div>
+        </el-card>
+      </el-col>
+
+      <!-- 非研发项目费用统计 (50%) -->
+      <el-col :span="12">
+        <el-card class="content-card">
+          <template #header>
+            <div class="card-header">
+              <span>非研发项目费用统计</span>
+              <el-button type="primary" link @click="$router.push('/expenses')">
+                查看详情 <el-icon><ArrowRight /></el-icon>
+              </el-button>
+            </div>
+          </template>
+          <div ref="nonProjectChartRef" style="width: 100%; height: 400px;"></div>
         </el-card>
       </el-col>
     </el-row>
@@ -240,7 +256,7 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { getProjectStatistics, getProjects } from '@/api/project'
 import { getMyTasks, getTaskStatistics } from '@/api/task'
-import { getProjectComparison } from '@/api/expense'
+import { getProjectComparison, getNonProjectExpenseStats } from '@/api/expense'
 import * as echarts from 'echarts'
 
 const projectStats = ref({})
@@ -248,9 +264,12 @@ const taskStats = ref({})
 const recentProjects = ref([])
 const myTasks = ref([])
 const expenseChartRef = ref(null)
+const nonProjectChartRef = ref(null)
 const expenseData = ref([])
+const nonProjectStatsData = ref([])
 const selectedProjectId = ref(null)
 let expenseChart = null
+let nonProjectChart = null
 
 const phaseLabels = {
   initiation: '立项',
@@ -287,12 +306,13 @@ const isOverdue = (deadline) => {
 
 const fetchData = async () => {
   try {
-    const [projectStatsRes, taskStatsRes, projectsRes, tasksRes, expenseRes] = await Promise.all([
+    const [projectStatsRes, taskStatsRes, projectsRes, tasksRes, expenseRes, nonProjectRes] = await Promise.all([
       getProjectStatistics(),
       getTaskStatistics(),
       getProjects({ page: 1, page_size: 5 }),
       getMyTasks({ page: 1, page_size: 5, status: 'not_started,in_progress' }),
-      getProjectComparison()
+      getProjectComparison(),
+      getNonProjectExpenseStats()
     ])
     
     projectStats.value = projectStatsRes.data || {}
@@ -300,6 +320,7 @@ const fetchData = async () => {
     recentProjects.value = projectsRes.data?.list || []
     myTasks.value = tasksRes.data?.list || []
     expenseData.value = expenseRes.data || []
+    nonProjectStatsData.value = nonProjectRes.data?.data || []
     
     // 默认选中第一个项目
     if (expenseData.value.length > 0) {
@@ -309,6 +330,7 @@ const fetchData = async () => {
     // 渲染图表
     await nextTick()
     initExpenseChart()
+    initNonProjectChart()
   } catch (error) {
     console.error('获取数据失败:', error)
   }
@@ -440,6 +462,95 @@ const initExpenseChart = () => {
   // 响应式调整
   window.addEventListener('resize', () => {
     expenseChart?.resize()
+  })
+}
+
+const initNonProjectChart = () => {
+  if (!nonProjectChartRef.value || nonProjectStatsData.value.length === 0) return
+  
+  // 如果图表已存在，先销毁
+  if (nonProjectChart) {
+    nonProjectChart.dispose()
+  }
+  
+  nonProjectChart = echarts.init(nonProjectChartRef.value)
+  
+  // 准备图表数据
+  const businessScenes = nonProjectStatsData.value.map(item => item.business_scene || '(未填写)')
+  const amounts = nonProjectStatsData.value.map(item => item.total || 0)
+  
+  // 计算总计
+  const grandTotal = amounts.reduce((sum, val) => sum + val, 0)
+  
+  const option = {
+    title: {
+      text: '非研发项目费用分布',
+      subtext: `总计: ${(grandTotal / 10000).toFixed(2)}万元`,
+      left: 'center',
+      top: 10
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      },
+      formatter: function(params) {
+        const valueInWan = (params[0].value / 10000).toFixed(2)
+        return params[0].axisValue + '<br/>' + params[0].marker + '费用金额: ' + valueInWan + '万元'
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      top: 80,
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: businessScenes,
+      axisLabel: {
+        interval: 0,
+        rotate: businessScenes.length > 5 ? 30 : 0,
+        fontSize: 12
+      }
+    },
+    yAxis: {
+      type: 'value',
+      name: '金额(万元)',
+      axisLabel: {
+        formatter: function(value) {
+          return (value / 10000).toFixed(1)
+        }
+      }
+    },
+    series: [
+      {
+        name: '费用金额',
+        type: 'bar',
+        data: amounts,
+        itemStyle: { 
+          color: '#E6A23C',
+          borderRadius: [4, 4, 0, 0]
+        },
+        barWidth: '50%',
+        label: {
+          show: true,
+          position: 'top',
+          formatter: function(params) {
+            return (params.value / 10000).toFixed(1) + '万'
+          },
+          fontSize: 11
+        }
+      }
+    ]
+  }
+  
+  nonProjectChart.setOption(option)
+  
+  // 响应式调整
+  window.addEventListener('resize', () => {
+    nonProjectChart?.resize()
   })
 }
 

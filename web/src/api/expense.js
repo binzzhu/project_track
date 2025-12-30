@@ -37,6 +37,11 @@ export function getProjectComparison() {
   return request.get('/expenses/comparison')
 }
 
+// 获取非研发项目费用统计
+export function getNonProjectExpenseStats() {
+  return request.get('/expenses/non-project-stats')
+}
+
 // 导入Excel费用记录
 export function importExpenses(formData) {
   return request.post('/expenses/import', formData, {
