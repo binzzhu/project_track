@@ -25,6 +25,7 @@ func (kc *KnowledgeController) List(c *gin.Context) {
 	keyword := c.Query("keyword")
 	categoryID := c.Query("category_id")
 	status := c.Query("status")
+	uploadedBy := c.Query("uploaded_by") // 新增：上传人搜索
 
 	db := config.GetDB()
 	var items []models.KnowledgeBase
@@ -38,6 +39,9 @@ func (kc *KnowledgeController) List(c *gin.Context) {
 	}
 	if categoryID != "" {
 		query = query.Where("category_id = ?", categoryID)
+	}
+	if uploadedBy != "" {
+		query = query.Where("uploaded_by = ?", uploadedBy)
 	}
 	if status != "" {
 		query = query.Where("status = ?", status)
