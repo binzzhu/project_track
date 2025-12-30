@@ -32,7 +32,12 @@
             <el-link type="primary" @click="$router.push(`/projects/${row.project_id}`)">{{ row.project?.name }}</el-link>
           </template>
         </el-table-column>
-        <el-table-column prop="assignee" label="负责人" width="100" header-align="center" align="center">
+        <el-table-column prop="project.manager" label="项目负责人" width="120" header-align="center" align="center">
+          <template #default="{ row }">
+            {{ row.project?.manager?.name || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="assignee" label="任务负责人" width="120" header-align="center" align="center">
           <template #default="{ row }">{{ row.assignee?.name || '-' }}</template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100" header-align="center" align="center">
@@ -50,18 +55,21 @@
             <el-tag :type="priorityTypes[row.priority]" size="small">{{ priorityLabels[row.priority] }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" header-align="center" align="center" fixed="right">
+        <el-table-column label="操作" width="200" header-align="center" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click="$router.push(`/tasks/${row.id}`)">查看</el-button>
-            <el-dropdown v-if="canUpdateStatus(row)" @command="(cmd) => handleStatusChange(row, cmd)">
-              <el-button type="primary" link>更新状态<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item v-if="row.status === 'not_started'" command="in_progress">开始任务</el-dropdown-item>
-                  <el-dropdown-item v-if="row.status === 'in_progress'" command="completed">完成任务</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+              <el-button type="primary" link @click="$router.push(`/tasks/${row.id}`)">查看</el-button>
+              <el-dropdown v-if="canUpdateStatus(row)" @command="(cmd) => handleStatusChange(row, cmd)">
+                <el-button type="primary" link>更新状态<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item v-if="row.status === 'not_started'" command="in_progress">开始任务</el-dropdown-item>
+                    <el-dropdown-item v-if="row.status === 'in_progress'" command="completed">完成任务</el-dropdown-item>
+                    <el-dropdown-item v-if="row.status === 'completed'" command="in_progress">重新开始</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -106,8 +114,16 @@ const isOverdue = (deadline, status) => {
 }
 
 const canUpdateStatus = (row) => {
-  // 只有任务负责人有权限更改任务状态
-  return row.assignee_id === userStore.user.id
+  const isTaskAssignee = row.assignee_id === userStore.user.id
+  const isProjectManager = row.project?.manager_id === userStore.user.id
+  
+  // 任务未完成：任务负责人或项目经理都可以更改状态
+  if (row.status !== 'completed') {
+    return isTaskAssignee || isProjectManager
+  }
+  
+  // 任务已完成：只有项目经理可以重新开始
+  return isProjectManager
 }
 
 const fetchTasks = async () => {

@@ -92,7 +92,7 @@ func (tc *TaskController) List(c *gin.Context) {
 	var tasks []models.Task
 	var total int64
 
-	query := db.Model(&models.Task{}).Preload("Project").Preload("Phase").Preload("Assignee")
+	query := db.Model(&models.Task{}).Preload("Project.Manager").Preload("Project").Preload("Phase").Preload("Assignee")
 
 	// 所有角色都可以查看所有任务
 
@@ -237,7 +237,7 @@ func (tc *TaskController) Get(c *gin.Context) {
 
 	db := config.GetDB()
 	var task models.Task
-	if err := db.Preload("Project").Preload("Phase").Preload("Assignee").Preload("Documents").First(&task, id).Error; err != nil {
+	if err := db.Preload("Project.Manager").Preload("Project").Preload("Phase").Preload("Assignee").Preload("Documents").First(&task, id).Error; err != nil {
 		utils.NotFound(c, "任务不存在")
 		return
 	}
@@ -362,15 +362,26 @@ func (tc *TaskController) UpdateStatus(c *gin.Context) {
 	userID, _ := c.Get("userID")
 	db := config.GetDB()
 	var task models.Task
-	if err := db.First(&task, id).Error; err != nil {
+	if err := db.Preload("Project").First(&task, id).Error; err != nil {
 		utils.NotFound(c, "任务不存在")
 		return
 	}
 
-	// 权限检查：只有任务负责人有权限更改状态
-	if task.AssigneeID != userID.(uint) {
-		utils.Forbidden(c, "只有任务负责人才能更改任务状态")
-		return
+	// 权限检查：
+	// 1. 任务未完成时，任务负责人或项目经理有权限更改状态
+	// 2. 任务已完成时，只有项目经理（项目负责人）有权限重新开始
+	if task.Status != config.TaskCompleted {
+		// 任务未完成，任务负责人或项目经理有权限
+		if task.AssigneeID != userID.(uint) && task.Project.ManagerID != userID.(uint) {
+			utils.Forbidden(c, "只有任务负责人或项目经理才能更改任务状态")
+			return
+		}
+	} else {
+		// 任务已完成，只有项目经理有权限重新开始
+		if task.Project.ManagerID != userID.(uint) {
+			utils.Forbidden(c, "只有项目经理才能重新开始已完成的任务")
+			return
+		}
 	}
 
 	updates := map[string]interface{}{"status": req.Status}
@@ -452,7 +463,7 @@ func (tc *TaskController) GetMyTasks(c *gin.Context) {
 	var total int64
 
 	query := db.Model(&models.Task{}).Where("assignee_id = ?", userID).
-		Preload("Project").Preload("Phase")
+		Preload("Project.Manager").Preload("Project").Preload("Phase")
 
 	if status != "" {
 		// 支持多状态查询（逗号分隔）

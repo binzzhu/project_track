@@ -286,7 +286,7 @@
           <div class="docs-header">
             <span class="docs-title">交付件</span>
             <el-upload
-              v-if="canOperateTask"
+              v-if="canUploadTaskDoc"
               :action="uploadUrl"
               :headers="uploadHeaders"
               :data="{ task_id: currentTask.id, project_id: route.params.id, phase_id: currentTask.phase_id }"
@@ -622,15 +622,45 @@ const showTaskDetail = async (task) => {
   taskDocuments.value = res.data?.list || []
 }
 
-const canOperateTask = computed(() => {
-  if (!currentTask.value) return false
-  return currentTask.value.assignee_id === userStore.userId || userStore.isAdmin || project.value.manager_id === userStore.userId
+// 是否为项目经理
+const isProjectManager = computed(() => {
+  return project.value.manager_id === userStore.userId
 })
 
-// 判断是否可以删除文档：管理员或文件上传者
- const canDeleteDocument = (doc) => {
-  if (userStore.isAdmin) return true
-  return doc.uploaded_by === userStore.userId
+// 能否操作任务状态
+const canOperateTask = computed(() => {
+  if (!currentTask.value) return false
+  const isTaskAssignee = currentTask.value.assignee_id === userStore.userId
+  // 任务未完成：任务负责人或项目经理都可以操作
+  if (currentTask.value.status !== 'completed') {
+    return isTaskAssignee || isProjectManager.value
+  }
+  // 任务已完成：只有项目经理可以重新开始
+  return isProjectManager.value
+})
+
+// 能否上传文件
+const canUploadTaskDoc = computed(() => {
+  if (!currentTask.value) return false
+  const isTaskAssignee = currentTask.value.assignee_id === userStore.userId
+  // 任务已完成：只有项目经理可以上传
+  if (currentTask.value.status === 'completed') {
+    return isProjectManager.value
+  }
+  // 任务未完成：任务负责人可以上传
+  return isTaskAssignee
+})
+
+// 判断是否可以删除文档
+const canDeleteDocument = (doc) => {
+  if (!currentTask.value) return false
+  const isTaskAssignee = currentTask.value.assignee_id === userStore.userId
+  // 任务已完成：只有项目经理可以删除
+  if (currentTask.value.status === 'completed') {
+    return isProjectManager.value
+  }
+  // 任务未完成：任务负责人可以删除
+  return isTaskAssignee
 }
 
 const handleTaskStatusChange = async (status) => {

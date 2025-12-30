@@ -51,6 +51,7 @@
       <el-button v-if="task.status === 'not_started'" type="primary" @click="handleStatusChange('in_progress')">开始任务</el-button>
       <el-button v-if="task.status === 'in_progress'" type="success" @click="handleStatusChange('completed')">完成任务</el-button>
       <el-button v-if="task.status === 'rejected'" type="warning" @click="handleStatusChange('in_progress')">重新开始</el-button>
+      <el-button v-if="task.status === 'completed' && isProjectManager" type="warning" @click="handleStatusChange('in_progress')">重新开始</el-button>
     </div>
 
     <!-- 交付件 -->
@@ -79,10 +80,15 @@
         <el-table-column prop="created_at" label="上传时间" width="160">
           <template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="150">
+        <el-table-column label="操作" width="200">
           <template #default="{ row }">
             <el-button type="success" link @click="handlePreview(row)">预览</el-button>
             <el-button type="primary" link @click="handleDownload(row)">下载</el-button>
+            <el-popconfirm v-if="canDeleteDoc" title="确定删除该交付件吗？" @confirm="handleDeleteDoc(row)">
+              <template #reference>
+                <el-button type="danger" link>删除</el-button>
+              </template>
+            </el-popconfirm>
           </template>
         </el-table-column>
       </el-table>
@@ -115,7 +121,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getTask, updateTaskStatus } from '@/api/task'
-import { getDocuments, getDownloadUrl } from '@/api/document'
+import { getDocuments, getDownloadUrl, deleteDocument } from '@/api/document'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
@@ -156,12 +162,44 @@ const isOverdue = computed(() => {
   return new Date(task.value.deadline) < new Date()
 })
 
-const canOperate = computed(() => {
-  return task.value.assignee_id === userStore.user.id || userStore.canManageProject
+// 是否为项目经理
+const isProjectManager = computed(() => {
+  return task.value.project?.manager_id === userStore.user.id
 })
 
+// 是否为任务负责人
+const isTaskAssignee = computed(() => {
+  return task.value.assignee_id === userStore.user.id
+})
+
+// 能否操作任务状态
+const canOperate = computed(() => {
+  // 任务未完成：任务负责人或项目经理都可以操作
+  if (task.value.status !== 'completed') {
+    return isTaskAssignee.value || isProjectManager.value
+  }
+  // 任务已完成：只有项目经理可以重新开始
+  return isProjectManager.value
+})
+
+// 能否上传文件
 const canUpload = computed(() => {
-  return task.value.assignee_id === userStore.user.id || userStore.canManageProject
+  // 任务已完成：只有项目经理可以上传
+  if (task.value.status === 'completed') {
+    return isProjectManager.value
+  }
+  // 任务未完成：任务负责人可以上传
+  return isTaskAssignee.value
+})
+
+// 能否删除交付件
+const canDeleteDoc = computed(() => {
+  // 任务已完成：只有项目经理可以删除
+  if (task.value.status === 'completed') {
+    return isProjectManager.value
+  }
+  // 任务未完成：任务负责人可以删除
+  return isTaskAssignee.value
 })
 
 const fetchTask = async () => {
@@ -186,6 +224,17 @@ const handleStatusChange = async (status) => {
 
 const handleUploadSuccess = () => { ElMessage.success('上传成功'); fetchDocuments() }
 const handleDownload = (row) => { window.open(getDownloadUrl(row.id), '_blank') }
+
+const handleDeleteDoc = async (row) => {
+  try {
+    await deleteDocument(row.id)
+    ElMessage.success('删除成功')
+    fetchDocuments()
+  } catch (error) {
+    console.error('删除失败:', error)
+    ElMessage.error('删除失败')
+  }
+}
 
 const handlePreview = async (row) => {
   currentPreviewFile.value = row

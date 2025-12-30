@@ -89,6 +89,9 @@ func (dc *DocumentController) Upload(c *gin.Context) {
 			return
 		}
 
+		// 检查是否是项目经理
+		isProjectManager := project.ManagerID == userID.(uint)
+
 		// 检查是否是创建者
 		isCreator := project.CreatedBy == userID.(uint)
 
@@ -99,8 +102,25 @@ func (dc *DocumentController) Upload(c *gin.Context) {
 			isSubManager = true
 		}
 
-		if !isCreator && !isSubManager {
-			utils.Forbidden(c, "只有项目创建者或子负责人才能上传资料")
+		// 如果是任务交付件，检查是否是任务负责人
+		isTaskAssignee := false
+		if taskID > 0 {
+			var task models.Task
+			if db.First(&task, taskID).Error == nil {
+				// 任务未完成时，任务负责人可以上传
+				if task.Status != config.TaskCompleted && task.AssigneeID == userID.(uint) {
+					isTaskAssignee = true
+				}
+				// 任务已完成时，只有项目经理可以上传
+				if task.Status == config.TaskCompleted && !isProjectManager {
+					utils.Forbidden(c, "任务完成后，只有项目经理可以上传交付件")
+					return
+				}
+			}
+		}
+
+		if !isCreator && !isSubManager && !isTaskAssignee && !isProjectManager {
+			utils.Forbidden(c, "只有项目创建者、项目经理、子负责人或任务负责人才能上传资料")
 			return
 		}
 	}
@@ -244,11 +264,43 @@ func (dc *DocumentController) Update(c *gin.Context) {
 func (dc *DocumentController) Delete(c *gin.Context) {
 	id := c.Param("id")
 
+	userID, _ := c.Get("userID")
+	roleCode, _ := c.Get("roleCode")
 	db := config.GetDB()
 	var doc models.Document
-	if err := db.First(&doc, id).Error; err != nil {
+	if err := db.Preload("Task").First(&doc, id).Error; err != nil {
 		utils.NotFound(c, "文档不存在")
 		return
+	}
+
+	// 权限检查：
+	// 1. 如果是任务交付件，且任务已完成，只有项目经理有权限删除
+	// 2. 如果是任务交付件，且任务未完成，只有任务负责人有权限删除
+	// 3. 其他情况下，管理员或上传者可以删除
+	if doc.TaskID > 0 {
+		// 获取任务信息
+		var task models.Task
+		if err := db.Preload("Project").First(&task, doc.TaskID).Error; err == nil {
+			// 如果任务已完成，只有项目经理有权限删除
+			if task.Status == config.TaskCompleted {
+				if roleCode != config.RoleAdmin && task.Project.ManagerID != userID.(uint) {
+					utils.Forbidden(c, "任务完成后，只有项目经理有权限删除交付件")
+					return
+				}
+			} else {
+				// 任务未完成，只有任务负责人可以删除
+				if roleCode != config.RoleAdmin && task.AssigneeID != userID.(uint) {
+					utils.Forbidden(c, "只有任务负责人才能删除交付件")
+					return
+				}
+			}
+		}
+	} else {
+		// 非任务交付件，管理员或上传者可以删除
+		if roleCode != config.RoleAdmin && doc.UploadedBy != userID.(uint) {
+			utils.Forbidden(c, "只有管理员或上传者才能删除文档")
+			return
+		}
 	}
 
 	// 删除文件
