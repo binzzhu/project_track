@@ -269,37 +269,38 @@ func (ec *ExpenseController) GetProjectComparison(c *gin.Context) {
 
 	// 获取每个项目的实际费用（按费用类型分组）
 	type ExpenseStat struct {
-		ProjectID   uint    `json:"project_id"`
-		ExpenseType string  `json:"expense_type"`
-		Total       float64 `json:"total"`
+		ProjectID    uint    `json:"project_id"`
+		ExpenseType  string  `json:"expense_type"`
+		TotalInclTax float64 `json:"total_incl_tax"`
+		TotalExclTax float64 `json:"total_excl_tax"`
 	}
 	var expenseStats []ExpenseStat
 	db.Model(&models.Expense{}).
-		Select("project_id, expense_type, SUM(reimbursement_amount) as total").
+		Select("project_id, expense_type, SUM(invoice_amount_incl_tax) as total_incl_tax, SUM(invoice_amount_excl_tax) as total_excl_tax").
 		Where("project_id IS NOT NULL AND is_classified = ?", true).
 		Group("project_id, expense_type").
 		Scan(&expenseStats)
 
 	// 构建统计结果
 	type ProjectComparison struct {
-		ProjectID         uint    `json:"project_id"`
-		ProjectName       string  `json:"project_name"`
-		InnovationCode    string  `json:"innovation_code"`
-		LaborBudget       float64 `json:"labor_budget"`
-		LaborActual       float64 `json:"labor_actual"`
-		LaborRate         float64 `json:"labor_rate"`
-		DirectBudget      float64 `json:"direct_budget"`
-		DirectActual      float64 `json:"direct_actual"`
-		DirectRate        float64 `json:"direct_rate"`
-		OutsourcingBudget float64 `json:"outsourcing_budget"`
-		OutsourcingActual float64 `json:"outsourcing_actual"`
-		OutsourcingRate   float64 `json:"outsourcing_rate"`
-		OtherBudget       float64 `json:"other_budget"`
-		OtherActual       float64 `json:"other_actual"`
-		OtherRate         float64 `json:"other_rate"`
-		TotalBudget       float64 `json:"total_budget"`
-		TotalActual       float64 `json:"total_actual"`
-		TotalRate         float64 `json:"total_rate"`
+		ProjectID                uint    `json:"project_id"`
+		ProjectName              string  `json:"project_name"`
+		InnovationCode           string  `json:"innovation_code"`
+		LaborBudget              float64 `json:"labor_budget"`
+		LaborActualInclTax       float64 `json:"labor_actual_incl_tax"`
+		LaborActualExclTax       float64 `json:"labor_actual_excl_tax"`
+		DirectBudget             float64 `json:"direct_budget"`
+		DirectActualInclTax      float64 `json:"direct_actual_incl_tax"`
+		DirectActualExclTax      float64 `json:"direct_actual_excl_tax"`
+		OutsourcingBudget        float64 `json:"outsourcing_budget"`
+		OutsourcingActualInclTax float64 `json:"outsourcing_actual_incl_tax"`
+		OutsourcingActualExclTax float64 `json:"outsourcing_actual_excl_tax"`
+		OtherBudget              float64 `json:"other_budget"`
+		OtherActualInclTax       float64 `json:"other_actual_incl_tax"`
+		OtherActualExclTax       float64 `json:"other_actual_excl_tax"`
+		TotalBudget              float64 `json:"total_budget"`
+		TotalActualInclTax       float64 `json:"total_actual_incl_tax"`
+		TotalActualExclTax       float64 `json:"total_actual_excl_tax"`
 	}
 
 	var result []ProjectComparison
@@ -319,37 +320,25 @@ func (ec *ExpenseController) GetProjectComparison(c *gin.Context) {
 			if stat.ProjectID == project.ID {
 				switch stat.ExpenseType {
 				case "labor":
-					comp.LaborActual = stat.Total
+					comp.LaborActualInclTax = stat.TotalInclTax
+					comp.LaborActualExclTax = stat.TotalExclTax
 				case "direct":
-					comp.DirectActual = stat.Total
+					comp.DirectActualInclTax = stat.TotalInclTax
+					comp.DirectActualExclTax = stat.TotalExclTax
 				case "outsourcing":
-					comp.OutsourcingActual = stat.Total
+					comp.OutsourcingActualInclTax = stat.TotalInclTax
+					comp.OutsourcingActualExclTax = stat.TotalExclTax
 				case "other":
-					comp.OtherActual = stat.Total
+					comp.OtherActualInclTax = stat.TotalInclTax
+					comp.OtherActualExclTax = stat.TotalExclTax
 				}
 			}
 		}
 
-		// 计算执行率
-		if comp.LaborBudget > 0 {
-			comp.LaborRate = comp.LaborActual / comp.LaborBudget * 100
-		}
-		if comp.DirectBudget > 0 {
-			comp.DirectRate = comp.DirectActual / comp.DirectBudget * 100
-		}
-		if comp.OutsourcingBudget > 0 {
-			comp.OutsourcingRate = comp.OutsourcingActual / comp.OutsourcingBudget * 100
-		}
-		if comp.OtherBudget > 0 {
-			comp.OtherRate = comp.OtherActual / comp.OtherBudget * 100
-		}
-
 		// 计算总计
 		comp.TotalBudget = comp.LaborBudget + comp.DirectBudget + comp.OutsourcingBudget + comp.OtherBudget
-		comp.TotalActual = comp.LaborActual + comp.DirectActual + comp.OutsourcingActual + comp.OtherActual
-		if comp.TotalBudget > 0 {
-			comp.TotalRate = comp.TotalActual / comp.TotalBudget * 100
-		}
+		comp.TotalActualInclTax = comp.LaborActualInclTax + comp.DirectActualInclTax + comp.OutsourcingActualInclTax + comp.OtherActualInclTax
+		comp.TotalActualExclTax = comp.LaborActualExclTax + comp.DirectActualExclTax + comp.OutsourcingActualExclTax + comp.OtherActualExclTax
 
 		result = append(result, comp)
 	}
@@ -364,27 +353,31 @@ func (ec *ExpenseController) GetNonProjectExpenseStats(c *gin.Context) {
 	// 统计非研发项目费用（project_id为NULL且expense_type为NULL或为空）
 	type BusinessSceneStat struct {
 		BusinessScene string  `json:"business_scene"`
-		Total         float64 `json:"total"`
+		TotalInclTax  float64 `json:"total_incl_tax"`
+		TotalExclTax  float64 `json:"total_excl_tax"`
 	}
 
 	var stats []BusinessSceneStat
 	db.Model(&models.Expense{}).
-		Select("business_scene, SUM(reimbursement_amount) as total").
+		Select("business_scene, SUM(invoice_amount_incl_tax) as total_incl_tax, SUM(invoice_amount_excl_tax) as total_excl_tax").
 		Where("project_id IS NULL AND (expense_type IS NULL OR expense_type = '')").
 		Group("business_scene").
-		Order("total DESC").
+		Order("total_incl_tax DESC").
 		Scan(&stats)
 
 	// 计算总计
-	var grandTotal float64
+	var grandTotalInclTax float64
+	var grandTotalExclTax float64
 	for _, stat := range stats {
-		grandTotal += stat.Total
+		grandTotalInclTax += stat.TotalInclTax
+		grandTotalExclTax += stat.TotalExclTax
 	}
 
 	// 返回结果
 	result := map[string]interface{}{
-		"data":        stats,
-		"grand_total": grandTotal,
+		"data":                 stats,
+		"grand_total_incl_tax": grandTotalInclTax,
+		"grand_total_excl_tax": grandTotalExclTax,
 	}
 
 	utils.Success(c, result)

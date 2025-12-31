@@ -17,59 +17,59 @@
             <span v-else>{{ row.project_name }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="人工费用" align="center">
-          <el-table-column prop="labor_budget" label="预算(元)" width="120" align="right">
-            <template #default="{ row }">{{ row.labor_budget?.toFixed(2) || '0.00' }}</template>
+        <el-table-column label="人工费用（万元）" align="center">
+          <el-table-column prop="labor_budget" label="预算（含税）" width="120" align="right">
+            <template #default="{ row }">{{ (row.labor_budget / 10000)?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
-          <el-table-column prop="labor_actual" label="实际(元)" width="120" align="right">
-            <template #default="{ row }">{{ row.labor_actual?.toFixed(2) || '0.00' }}</template>
+          <el-table-column prop="labor_actual_incl_tax" label="实际（含税）" width="120" align="right">
+            <template #default="{ row }">{{ (row.labor_actual_incl_tax / 10000)?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
-          <el-table-column prop="labor_rate" label="执行率(%)" width="100" align="right">
-            <template #default="{ row }">{{ row.labor_rate?.toFixed(1) || '0.0' }}%</template>
-          </el-table-column>
-        </el-table-column>
-        <el-table-column label="直接投入费用" align="center">
-          <el-table-column prop="direct_budget" label="预算(元)" width="120" align="right">
-            <template #default="{ row }">{{ row.direct_budget?.toFixed(2) || '0.00' }}</template>
-          </el-table-column>
-          <el-table-column prop="direct_actual" label="实际(元)" width="120" align="right">
-            <template #default="{ row }">{{ row.direct_actual?.toFixed(2) || '0.00' }}</template>
-          </el-table-column>
-          <el-table-column prop="direct_rate" label="执行率(%)" width="100" align="right">
-            <template #default="{ row }">{{ row.direct_rate?.toFixed(1) || '0.0' }}%</template>
+          <el-table-column prop="labor_actual_excl_tax" label="实际（不含税）" width="140" align="right">
+            <template #default="{ row }">{{ (row.labor_actual_excl_tax / 10000)?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
         </el-table-column>
-        <el-table-column label="委托研发费用" align="center">
-          <el-table-column prop="outsourcing_budget" label="预算(元)" width="120" align="right">
-            <template #default="{ row }">{{ row.outsourcing_budget?.toFixed(2) || '0.00' }}</template>
+        <el-table-column label="直接投入费用（万元）" align="center">
+          <el-table-column prop="direct_budget" label="预算（含税）" width="120" align="right">
+            <template #default="{ row }">{{ (row.direct_budget / 10000)?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
-          <el-table-column prop="outsourcing_actual" label="实际(元)" width="120" align="right">
-            <template #default="{ row }">{{ row.outsourcing_actual?.toFixed(2) || '0.00' }}</template>
+          <el-table-column prop="direct_actual_incl_tax" label="实际（含税）" width="120" align="right">
+            <template #default="{ row }">{{ (row.direct_actual_incl_tax / 10000)?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
-          <el-table-column prop="outsourcing_rate" label="执行率(%)" width="100" align="right">
-            <template #default="{ row }">{{ row.outsourcing_rate?.toFixed(1) || '0.0' }}%</template>
-          </el-table-column>
-        </el-table-column>
-        <el-table-column label="其他费用" align="center">
-          <el-table-column prop="other_budget" label="预算(元)" width="120" align="right">
-            <template #default="{ row }">{{ row.other_budget?.toFixed(2) || '0.00' }}</template>
-          </el-table-column>
-          <el-table-column prop="other_actual" label="实际(元)" width="120" align="right">
-            <template #default="{ row }">{{ row.other_actual?.toFixed(2) || '0.00' }}</template>
-          </el-table-column>
-          <el-table-column prop="other_rate" label="执行率(%)" width="100" align="right">
-            <template #default="{ row }">{{ row.other_rate?.toFixed(1) || '0.0' }}%</template>
+          <el-table-column prop="direct_actual_excl_tax" label="实际（不含税）" width="140" align="right">
+            <template #default="{ row }">{{ (row.direct_actual_excl_tax / 10000)?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
         </el-table-column>
-        <el-table-column label="合计" align="center" fixed="right">
-          <el-table-column prop="total_budget" label="预算(元)" width="130" align="right">
-            <template #default="{ row }">{{ row.total_budget?.toFixed(2) || '0.00' }}</template>
+        <el-table-column label="委托研发费用（万元）" align="center">
+          <el-table-column prop="outsourcing_budget" label="预算（含税）" width="120" align="right">
+            <template #default="{ row }">{{ (row.outsourcing_budget / 10000)?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
-          <el-table-column prop="total_actual" label="实际(元)" width="130" align="right">
-            <template #default="{ row }">{{ row.total_actual?.toFixed(2) || '0.00' }}</template>
+          <el-table-column prop="outsourcing_actual_incl_tax" label="实际（含税）" width="120" align="right">
+            <template #default="{ row }">{{ (row.outsourcing_actual_incl_tax / 10000)?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
-          <el-table-column prop="total_rate" label="执行率(%)" width="100" align="right">
-            <template #default="{ row }">{{ row.total_rate?.toFixed(1) || '0.0' }}%</template>
+          <el-table-column prop="outsourcing_actual_excl_tax" label="实际（不含税）" width="140" align="right">
+            <template #default="{ row }">{{ (row.outsourcing_actual_excl_tax / 10000)?.toFixed(2) || '0.00' }}</template>
+          </el-table-column>
+        </el-table-column>
+        <el-table-column label="其他费用（万元）" align="center">
+          <el-table-column prop="other_budget" label="预算（含税）" width="120" align="right">
+            <template #default="{ row }">{{ (row.other_budget / 10000)?.toFixed(2) || '0.00' }}</template>
+          </el-table-column>
+          <el-table-column prop="other_actual_incl_tax" label="实际（含税）" width="120" align="right">
+            <template #default="{ row }">{{ (row.other_actual_incl_tax / 10000)?.toFixed(2) || '0.00' }}</template>
+          </el-table-column>
+          <el-table-column prop="other_actual_excl_tax" label="实际（不含税）" width="140" align="right">
+            <template #default="{ row }">{{ (row.other_actual_excl_tax / 10000)?.toFixed(2) || '0.00' }}</template>
+          </el-table-column>
+        </el-table-column>
+        <el-table-column label="合计（万元）" align="center" fixed="right">
+          <el-table-column prop="total_budget" label="预算（含税）" width="130" align="right">
+            <template #default="{ row }">{{ (row.total_budget / 10000)?.toFixed(2) || '0.00' }}</template>
+          </el-table-column>
+          <el-table-column prop="total_actual_incl_tax" label="实际（含税）" width="130" align="right">
+            <template #default="{ row }">{{ (row.total_actual_incl_tax / 10000)?.toFixed(2) || '0.00' }}</template>
+          </el-table-column>
+          <el-table-column prop="total_actual_excl_tax" label="实际（不含税）" width="150" align="right">
+            <template #default="{ row }">{{ (row.total_actual_excl_tax / 10000)?.toFixed(2) || '0.00' }}</template>
           </el-table-column>
         </el-table-column>
       </el-table>
@@ -96,11 +96,18 @@
               <td class="total-label">合计</td>
             </tr>
             <tr class="amount-row">
-              <td class="row-label">费用（元）</td>
-              <td v-for="(item, index) in nonProjectStatsData" :key="'amount-' + index" class="data-cell amount-cell">
-                {{ item.total?.toFixed(2) || '0.00' }}
+              <td class="row-label">含税费用（元）</td>
+              <td v-for="(item, index) in nonProjectStatsData" :key="'incl-' + index" class="data-cell amount-cell">
+                {{ item.total_incl_tax?.toFixed(2) || '0.00' }}
               </td>
-              <td class="total-cell">{{ nonProjectGrandTotal.toFixed(2) }}</td>
+              <td class="total-cell">{{ nonProjectGrandTotalInclTax.toFixed(2) }}</td>
+            </tr>
+            <tr class="amount-row">
+              <td class="row-label">不含税费用（元）</td>
+              <td v-for="(item, index) in nonProjectStatsData" :key="'excl-' + index" class="data-cell amount-cell">
+                {{ item.total_excl_tax?.toFixed(2) || '0.00' }}
+              </td>
+              <td class="total-cell">{{ nonProjectGrandTotalExclTax.toFixed(2) }}</td>
             </tr>
           </tbody>
         </table>
@@ -178,12 +185,10 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="unit_code" label="单位编号" width="100" header-align="center" align="center" />
         <el-table-column prop="unit_name" label="单位名称" width="200" header-align="center" align="center" show-overflow-tooltip />
         <el-table-column prop="document_no" label="单据编号" width="180" header-align="center" align="center" show-overflow-tooltip />
         <el-table-column prop="business_scene" label="业务场景" width="120" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="cross_industry_code" label="跨行业业务编码" width="150" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="summary" label="摘要" min-width="200" header-align="center" align="left" show-overflow-tooltip />
+        <el-table-column prop="summary" label="摘要" min-width="200" header-align="center" align="center" show-overflow-tooltip />
         <el-table-column prop="department_name" label="部门名称" width="120" header-align="center" align="center" />
         <el-table-column prop="reimbursed_person_name" label="报账人" width="100" header-align="center" align="center" />
         <el-table-column prop="document_status" label="单据状态" width="100" header-align="center" align="center">
@@ -193,39 +198,28 @@
           </template>
         </el-table-column>
         <el-table-column prop="frozen_status" label="冻结状态" width="100" header-align="center" align="center" />
-        <el-table-column prop="reimbursement_amount" label="报账金额" width="110" header-align="center" align="right">
+        <el-table-column prop="reimbursement_amount" label="报账金额" width="110" header-align="center" align="center">
           <template #default="{ row }">{{ row.reimbursement_amount ? row.reimbursement_amount.toFixed(2) : '0.00' }}</template>
         </el-table-column>
-        <el-table-column prop="payment_amount" label="支付金额" width="110" header-align="center" align="right">
+        <el-table-column prop="payment_amount" label="支付金额" width="110" header-align="center" align="center">
           <template #default="{ row }">{{ row.payment_amount ? row.payment_amount.toFixed(2) : '0.00' }}</template>
         </el-table-column>
-        <el-table-column prop="write_off_amount" label="核销金额" width="110" header-align="center" align="right">
+        <el-table-column prop="write_off_amount" label="核销金额" width="110" header-align="center" align="center">
           <template #default="{ row }">{{ row.write_off_amount ? row.write_off_amount.toFixed(2) : '0.00' }}</template>
         </el-table-column>
-        <el-table-column prop="invoice_amount_excl_tax" label="发票不含税金额" width="140" header-align="center" align="right">
+        <el-table-column prop="invoice_amount_excl_tax" label="发票不含税金额" width="140" header-align="center" align="center">
           <template #default="{ row }">{{ row.invoice_amount_excl_tax ? row.invoice_amount_excl_tax.toFixed(2) : '0.00' }}</template>
         </el-table-column>
-        <el-table-column prop="invoice_amount_incl_tax" label="发票含税金额" width="140" header-align="center" align="right">
+        <el-table-column prop="invoice_amount_incl_tax" label="发票含税金额" width="140" header-align="center" align="center">
           <template #default="{ row }">{{ row.invoice_amount_incl_tax ? row.invoice_amount_incl_tax.toFixed(2) : '0.00' }}</template>
         </el-table-column>
         <el-table-column prop="current_process" label="当前处理环节" width="120" header-align="center" align="center" />
         <el-table-column prop="current_processor" label="当前处理人" width="120" header-align="center" align="center" show-overflow-tooltip />
         <el-table-column prop="physical_status" label="实物状态" width="100" header-align="center" align="center" />
         <el-table-column prop="physical_location" label="实物位置" width="120" header-align="center" align="center" />
-        <el-table-column prop="document_type" label="单据类型" width="100" header-align="center" align="center" />
         <el-table-column prop="document_type_name" label="单据类型名称" width="140" header-align="center" align="center" show-overflow-tooltip />
         <el-table-column prop="supplier_code" label="供应商编号" width="160" header-align="center" align="center" />
         <el-table-column prop="supplier_name" label="供应商名称" width="180" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="create_doc_time" label="制单时间" width="160" header-align="center" align="center">
-          <template #default="{ row }">{{ row.create_doc_time ? new Date(row.create_doc_time).toLocaleString('zh-CN') : '-' }}</template>
-        </el-table-column>
-        <el-table-column prop="submit_time" label="提交时间" width="160" header-align="center" align="center">
-          <template #default="{ row }">{{ row.submit_time ? new Date(row.submit_time).toLocaleString('zh-CN') : '-' }}</template>
-        </el-table-column>
-        <el-table-column prop="internal_code" label="内码" width="300" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="shared_process" label="共享处理环节" width="120" header-align="center" align="center" />
-        <el-table-column prop="shared_processor" label="共享处理人" width="150" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="payment_account" label="付款账号" width="150" header-align="center" align="center" />
         <el-table-column label="操作" width="150" header-align="center" align="center" fixed="right">
           <template #default="{ row }">
             <el-button v-if="canEdit(row)" type="primary" link @click="showEditDialog(row)">编辑</el-button>
@@ -345,7 +339,8 @@ const expenses = ref([])
 const projects = ref([])
 const comparisonData = ref([])
 const nonProjectStatsData = ref([])
-const nonProjectGrandTotal = ref(0)
+const nonProjectGrandTotalInclTax = ref(0)
+const nonProjectGrandTotalExclTax = ref(0)
 const dialogVisible = ref(false)
 const importDialogVisible = ref(false)
 const isEdit = ref(false)
@@ -414,7 +409,8 @@ const fetchNonProjectStats = async () => {
   try {
     const res = await getNonProjectExpenseStats()
     nonProjectStatsData.value = res.data?.data || []
-    nonProjectGrandTotal.value = res.data?.grand_total || 0
+    nonProjectGrandTotalInclTax.value = res.data?.grand_total_incl_tax || 0
+    nonProjectGrandTotalExclTax.value = res.data?.grand_total_excl_tax || 0
   } catch (error) {
     console.error('获取非研发项目费用统计失败:', error)
   } finally {

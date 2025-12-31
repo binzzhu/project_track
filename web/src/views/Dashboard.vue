@@ -203,39 +203,41 @@
 
     <!-- 费用统计图表 -->
     <el-row :gutter="20" class="content-row">
-      <!-- 研发项目费用执行情况统计 (50%) -->
-      <el-col :span="12">
+      <!-- 研发项目费用执行情况统计 (100%) -->
+      <el-col :span="24">
         <el-card class="content-card">
           <template #header>
             <div class="card-header">
               <span>研发项目费用执行情况统计</span>
-              <el-button type="primary" link @click="$router.push('/expenses')">
-                查看详情 <el-icon><ArrowRight /></el-icon>
-              </el-button>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <el-select 
+                  v-model="selectedProjectId" 
+                  placeholder="请选择项目" 
+                  filterable 
+                  style="width: 280px;"
+                  @change="updateExpenseChart"
+                >
+                  <el-option
+                    v-for="project in expenseData"
+                    :key="project.project_id"
+                    :label="project.project_name"
+                    :value="project.project_id"
+                  />
+                </el-select>
+                <el-button type="primary" link @click="$router.push('/expenses')">
+                  查看详情 <el-icon><ArrowRight /></el-icon>
+                </el-button>
+              </div>
             </div>
           </template>
-          <div style="margin-bottom: 10px;">
-            <el-select 
-              v-model="selectedProjectId" 
-              placeholder="请选择项目" 
-              filterable 
-              style="width: 100%;"
-              @change="updateExpenseChart"
-            >
-              <el-option
-                v-for="project in expenseData"
-                :key="project.project_id"
-                :label="project.project_name"
-                :value="project.project_id"
-              />
-            </el-select>
-          </div>
           <div ref="expenseChartRef" style="width: 100%; height: 350px;"></div>
         </el-card>
       </el-col>
+    </el-row>
 
-      <!-- 非研发项目费用统计 (50%) -->
-      <el-col :span="12">
+    <el-row :gutter="20" class="content-row">
+      <!-- 非研发项目费用统计 (100%) -->
+      <el-col :span="24">
         <el-card class="content-card">
           <template #header>
             <div class="card-header">
@@ -362,11 +364,17 @@ const initExpenseChart = () => {
     selectedProject.outsourcing_budget || 0,
     selectedProject.other_budget || 0
   ]
-  const actualData = [
-    selectedProject.labor_actual || 0,
-    selectedProject.direct_actual || 0,
-    selectedProject.outsourcing_actual || 0,
-    selectedProject.other_actual || 0
+  const actualInclTaxData = [
+    selectedProject.labor_actual_incl_tax || 0,
+    selectedProject.direct_actual_incl_tax || 0,
+    selectedProject.outsourcing_actual_incl_tax || 0,
+    selectedProject.other_actual_incl_tax || 0
+  ]
+  const actualExclTaxData = [
+    selectedProject.labor_actual_excl_tax || 0,
+    selectedProject.direct_actual_excl_tax || 0,
+    selectedProject.outsourcing_actual_excl_tax || 0,
+    selectedProject.other_actual_excl_tax || 0
   ]
   
   const option = {
@@ -390,7 +398,7 @@ const initExpenseChart = () => {
       }
     },
     legend: {
-      data: ['预算', '实际'],
+      data: ['预算', '实际(含税)', '实际(不含税)'],
       top: 45
     },
     grid: {
@@ -426,7 +434,7 @@ const initExpenseChart = () => {
           color: '#409EFF',
           borderRadius: [4, 4, 0, 0]
         },
-        barWidth: '30%',
+        barWidth: '20%',
         label: {
           show: true,
           position: 'top',
@@ -437,14 +445,32 @@ const initExpenseChart = () => {
         }
       },
       {
-        name: '实际',
+        name: '实际(含税)',
         type: 'bar',
-        data: actualData,
+        data: actualInclTaxData,
         itemStyle: { 
           color: '#67C23A',
           borderRadius: [4, 4, 0, 0]
         },
-        barWidth: '30%',
+        barWidth: '20%',
+        label: {
+          show: true,
+          position: 'top',
+          formatter: function(params) {
+            return (params.value / 10000).toFixed(1) + '万'
+          },
+          fontSize: 11
+        }
+      },
+      {
+        name: '实际(不含税)',
+        type: 'bar',
+        data: actualExclTaxData,
+        itemStyle: { 
+          color: '#E6A23C',
+          borderRadius: [4, 4, 0, 0]
+        },
+        barWidth: '20%',
         label: {
           show: true,
           position: 'top',
@@ -477,15 +503,17 @@ const initNonProjectChart = () => {
   
   // 准备图表数据
   const businessScenes = nonProjectStatsData.value.map(item => item.business_scene || '(未填写)')
-  const amounts = nonProjectStatsData.value.map(item => item.total || 0)
+  const amountsInclTax = nonProjectStatsData.value.map(item => item.total_incl_tax || 0)
+  const amountsExclTax = nonProjectStatsData.value.map(item => item.total_excl_tax || 0)
   
   // 计算总计
-  const grandTotal = amounts.reduce((sum, val) => sum + val, 0)
+  const grandTotalInclTax = amountsInclTax.reduce((sum, val) => sum + val, 0)
+  const grandTotalExclTax = amountsExclTax.reduce((sum, val) => sum + val, 0)
   
   const option = {
     title: {
       text: '非研发项目费用分布',
-      subtext: `总计: ${(grandTotal / 10000).toFixed(2)}万元`,
+      subtext: `含税总计: ${(grandTotalInclTax / 10000).toFixed(2)}万元 | 不含税总计: ${(grandTotalExclTax / 10000).toFixed(2)}万元`,
       left: 'center',
       top: 10
     },
@@ -495,15 +523,23 @@ const initNonProjectChart = () => {
         type: 'shadow'
       },
       formatter: function(params) {
-        const valueInWan = (params[0].value / 10000).toFixed(2)
-        return params[0].axisValue + '<br/>' + params[0].marker + '费用金额: ' + valueInWan + '万元'
+        let result = params[0].axisValue + '<br/>'
+        params.forEach(item => {
+          const valueInWan = (item.value / 10000).toFixed(2)
+          result += item.marker + item.seriesName + ': ' + valueInWan + '万元<br/>'
+        })
+        return result
       }
+    },
+    legend: {
+      data: ['含税费用', '不含税费用'],
+      top: 50
     },
     grid: {
       left: '3%',
       right: '4%',
       bottom: '3%',
-      top: 80,
+      top: 100,
       containLabel: true
     },
     xAxis: {
@@ -526,14 +562,32 @@ const initNonProjectChart = () => {
     },
     series: [
       {
-        name: '费用金额',
+        name: '含税费用',
         type: 'bar',
-        data: amounts,
+        data: amountsInclTax,
         itemStyle: { 
           color: '#E6A23C',
           borderRadius: [4, 4, 0, 0]
         },
-        barWidth: '50%',
+        barWidth: '35%',
+        label: {
+          show: true,
+          position: 'top',
+          formatter: function(params) {
+            return (params.value / 10000).toFixed(1) + '万'
+          },
+          fontSize: 11
+        }
+      },
+      {
+        name: '不含税费用',
+        type: 'bar',
+        data: amountsExclTax,
+        itemStyle: { 
+          color: '#67C23A',
+          borderRadius: [4, 4, 0, 0]
+        },
+        barWidth: '35%',
         label: {
           show: true,
           position: 'top',
