@@ -50,9 +50,14 @@
             <el-tag :type="statusTypes[row.status]">{{ statusLabels[row.status] }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="deadline" label="截止日期" width="120" header-align="center" align="center">
+        <el-table-column prop="created_at" label="创建时间" width="160" header-align="center" align="center">
           <template #default="{ row }">
-            <span :class="{ 'overdue': isOverdue(row.deadline, row.status) }">{{ formatDate(row.deadline) }}</span>
+            {{ formatDateTime(row.created_at) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="deadline" label="截止时间" width="160" header-align="center" align="center">
+          <template #default="{ row }">
+            <span :class="{ 'overdue': isOverdue(row.deadline, row.status) }">{{ formatDateTime(row.deadline) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="priority" label="优先级" width="80" header-align="center" align="center">
@@ -120,6 +125,17 @@ const priorityLabels = { 1: '高', 2: '中', 3: '低' }
 const priorityTypes = { 1: 'danger', 2: 'warning', 3: 'info' }
 
 const formatDate = (dateStr) => dateStr ? dateStr.split('T')[0] : '-'
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  return date.toLocaleString('zh-CN', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit', 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  })
+}
 const isOverdue = (deadline, status) => {
   if (!deadline || status === 'completed') return false
   return new Date(deadline) < new Date()

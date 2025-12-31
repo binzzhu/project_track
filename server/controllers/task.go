@@ -158,7 +158,7 @@ func (tc *TaskController) Create(c *gin.Context) {
 	}
 
 	if req.Deadline != "" {
-		t, _ := time.Parse("2006-01-02", req.Deadline)
+		t, _ := time.Parse("2006-01-02 15:04", req.Deadline)
 		task.Deadline = &t
 	}
 

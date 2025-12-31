@@ -23,7 +23,11 @@
             </div>
             <div class="task-info">
               <el-icon><Calendar /></el-icon>
-              <span :class="{ 'overdue': isOverdue(task) }">{{ formatDate(task.deadline) }}</span>
+              <span>创建: {{ formatDateTime(task.created_at) }}</span>
+            </div>
+            <div class="task-info">
+              <el-icon><Clock /></el-icon>
+              <span :class="{ 'overdue': isOverdue(task) }">截止: {{ formatDateTime(task.deadline) }}</span>
             </div>
             <div class="task-info">
               <el-icon><Flag /></el-icon>
@@ -77,6 +81,16 @@ const priorityLabels = { 1: '高', 2: '中', 3: '低' }
 const priorityTypes = { 1: 'danger', 2: 'warning', 3: 'info' }
 
 const formatDate = (dateStr) => dateStr ? dateStr.split('T')[0] : '无截止日期'
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  return date.toLocaleString('zh-CN', { 
+    month: '2-digit', 
+    day: '2-digit',
+    hour: '2-digit', 
+    minute: '2-digit' 
+  })
+}
 const isOverdue = (task) => {
   if (!task.deadline || task.status === 'completed') return false
   return new Date(task.deadline) < new Date()

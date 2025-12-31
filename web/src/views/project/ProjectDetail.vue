@@ -146,8 +146,11 @@
                     <el-tag :type="taskStatusTypes[row.status]" size="small">{{ taskStatusLabels[row.status] }}</el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column prop="deadline" label="截止日期" width="110" header-align="center" align="center">
-                  <template #default="{ row }">{{ formatDate(row.deadline) }}</template>
+                <el-table-column prop="created_at" label="创建时间" width="160" header-align="center" align="center">
+                  <template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
+                </el-table-column>
+                <el-table-column prop="deadline" label="截止时间" width="160" header-align="center" align="center">
+                  <template #default="{ row }">{{ formatDateTime(row.deadline) }}</template>
                 </el-table-column>
                 <el-table-column v-if="canEditProject" label="操作" width="180" header-align="center" align="center">
                   <template #default="{ row }">
@@ -245,8 +248,8 @@
             <el-option v-for="user in allUsers" :key="user.id" :label="user.name" :value="user.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="截止日期">
-          <el-date-picker v-model="taskForm.deadline" type="date" value-format="YYYY-MM-DD" style="width: 100%;" />
+        <el-form-item label="截止时间">
+          <el-date-picker v-model="taskForm.deadline" type="datetime" value-format="YYYY-MM-DD HH:mm" placeholder="请选择截止时间" style="width: 100%;" />
         </el-form-item>
         <el-form-item label="优先级">
           <el-select v-model="taskForm.priority" placeholder="请选择" style="width: 100%;">
@@ -277,7 +280,7 @@
             <el-tag :type="taskStatusTypes[currentTask.status]" size="small">{{ taskStatusLabels[currentTask.status] }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="负责人">{{ currentTask.assignee?.name || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="截止日期">{{ formatDate(currentTask.deadline) }}</el-descriptions-item>
+          <el-descriptions-item label="截止时间">{{ formatDateTime(currentTask.deadline) }}</el-descriptions-item>
           <el-descriptions-item label="优先级">
             <el-tag :type="priorityTypes[currentTask.priority]" size="small">{{ priorityLabels[currentTask.priority] }}</el-tag>
           </el-descriptions-item>

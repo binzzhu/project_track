@@ -187,9 +187,14 @@
                   <el-tag :type="statusTypes[row.status]" size="small">{{ statusLabels[row.status] }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="deadline" label="截止日期" width="90" header-align="center" align="center">
+              <el-table-column prop="created_at" label="创建时间" width="120" header-align="center" align="center">
                 <template #default="{ row }">
-                  <span :style="{ color: isOverdue(row.deadline) ? '#F56C6C' : '' }">{{ formatDate(row.deadline) }}</span>
+                  {{ formatDateTime(row.created_at) }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="deadline" label="截止时间" width="120" header-align="center" align="center">
+                <template #default="{ row }">
+                  <span :style="{ color: isOverdue(row.deadline) ? '#F56C6C' : '' }">{{ formatDateTime(row.deadline) }}</span>
                 </template>
               </el-table-column>
               <el-table-column prop="deliverables" label="交付要求" min-width="120" header-align="center" align="center" show-overflow-tooltip>
@@ -299,6 +304,17 @@ const formatDate = (dateStr) => {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
   return `${date.getMonth() + 1}/${date.getDate()}`
+}
+
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  return date.toLocaleString('zh-CN', { 
+    month: '2-digit', 
+    day: '2-digit',
+    hour: '2-digit', 
+    minute: '2-digit' 
+  })
 }
 
 const isOverdue = (deadline) => {

@@ -20,13 +20,14 @@
         </el-descriptions-item>
         <el-descriptions-item label="所属阶段">{{ phaseLabels[task.phase?.phase_name] || '-' }}</el-descriptions-item>
         <el-descriptions-item label="负责人">{{ task.assignee?.name || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="截止日期">
-          <span :class="{ 'overdue': isOverdue }">{{ formatDate(task.deadline) }}</span>
+        <el-descriptions-item label="创建时间">{{ formatDateTime(task.created_at) }}</el-descriptions-item>
+        <el-descriptions-item label="截止时间" :span="2">
+          <span :class="{ 'overdue': isOverdue }">{{ formatDateTime(task.deadline) }}</span>
         </el-descriptions-item>
         <el-descriptions-item label="优先级">
           <el-tag :type="priorityTypes[task.priority]" size="small">{{ priorityLabels[task.priority] }}</el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ formatDateTime(task.created_at) }}</el-descriptions-item>
+        <el-descriptions-item label="完成时间">{{ formatDateTime(task.completed_at) }}</el-descriptions-item>
         <el-descriptions-item label="任务描述" :span="2">{{ task.description || '-' }}</el-descriptions-item>
         <el-descriptions-item label="交付要求" :span="2">{{ task.deliverables || '-' }}</el-descriptions-item>
       </el-descriptions>
