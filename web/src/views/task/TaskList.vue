@@ -5,6 +5,11 @@
         <el-form-item label="关键词">
           <el-input v-model="searchForm.keyword" placeholder="任务名称" clearable @keyup.enter="handleSearch" />
         </el-form-item>
+        <el-form-item label="任务负责人">
+          <el-select v-model="searchForm.assignee_id" placeholder="请选择负责人" clearable filterable style="width: 150px;">
+            <el-option v-for="user in users" :key="user.id" :label="user.name" :value="user.id" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 120px;">
             <el-option label="未开始" value="not_started" />
@@ -55,9 +60,9 @@
             <el-tag :type="priorityTypes[row.priority]" size="small">{{ priorityLabels[row.priority] }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" header-align="center" fixed="right">
+        <el-table-column label="操作" width="220" header-align="center" fixed="right">
           <template #default="{ row }">
-            <div style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 4px;">
               <el-button type="primary" link @click="$router.push(`/tasks/${row.id}`)">查看</el-button>
               <el-dropdown v-if="canUpdateStatus(row)" @command="(cmd) => handleStatusChange(row, cmd)">
                 <el-button type="primary" link>更新状态<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
@@ -69,6 +74,11 @@
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
+              <el-popconfirm v-if="canDeleteTask(row)" title="确定删除该任务吗？" width="200" @confirm="handleDeleteTask(row.id)">
+                <template #reference>
+                  <el-button type="danger" link>删除</el-button>
+                </template>
+              </el-popconfirm>
             </div>
           </template>
         </el-table-column>
@@ -90,7 +100,8 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getTasks, updateTaskStatus } from '@/api/task'
+import { getTasks, updateTaskStatus, deleteTask } from '@/api/task'
+import { getUsers } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
@@ -98,8 +109,9 @@ const userStore = useUserStore()
 
 const loading = ref(false)
 const tasks = ref([])
+const users = ref([]) // 用户列表
 
-const searchForm = reactive({ keyword: '', status: '' })
+const searchForm = reactive({ keyword: '', assignee_id: '', status: '' })
 const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
 
 const statusLabels = { not_started: '未开始', in_progress: '进行中', completed: '已完成', rejected: '被驳回' }
@@ -133,6 +145,7 @@ const fetchTasks = async () => {
       page: pagination.page,
       page_size: pagination.pageSize,
       keyword: searchForm.keyword,
+      assignee_id: searchForm.assignee_id,
       status: searchForm.status
     })
     tasks.value = res.data?.list || []
@@ -144,8 +157,18 @@ const fetchTasks = async () => {
   }
 }
 
+const fetchUsers = async () => {
+  const res = await getUsers({ page: 1, page_size: 100 })
+  users.value = res.data?.list || []
+}
+
 const handleSearch = () => { pagination.page = 1; fetchTasks() }
-const resetSearch = () => { searchForm.keyword = ''; searchForm.status = ''; handleSearch() }
+const resetSearch = () => { 
+  searchForm.keyword = ''
+  searchForm.assignee_id = ''
+  searchForm.status = ''
+  handleSearch()
+}
 
 const handleStatusChange = async (row, status) => {
   try {
@@ -157,7 +180,25 @@ const handleStatusChange = async (row, status) => {
   }
 }
 
-onMounted(() => fetchTasks())
+const canDeleteTask = (row) => {
+  // 只有项目经理可以删除任务
+  return row.project?.manager_id === userStore.user.id
+}
+
+const handleDeleteTask = async (taskId) => {
+  try {
+    await deleteTask(taskId)
+    ElMessage.success('删除成功')
+    fetchTasks()
+  } catch (error) {
+    console.error('删除任务失败:', error)
+  }
+}
+
+onMounted(() => {
+  fetchUsers()
+  fetchTasks()
+})
 </script>
 
 <style scoped>

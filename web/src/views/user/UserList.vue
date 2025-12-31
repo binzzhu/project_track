@@ -51,7 +51,7 @@
           <template #default="{ row }">
             <el-button type="primary" link @click="showEditDialog(row)">编辑</el-button>
             <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
-            <el-popconfirm v-if="row.username !== 'admin'" title="确定删除该用户吗？" @confirm="handleDelete(row.id)">
+            <el-popconfirm v-if="row.username !== 'admin'" title="确定删除该用户吗？" width="200" @confirm="handleDelete(row.id)">
               <template #reference>
                 <el-button type="danger" link>删除</el-button>
               </template>

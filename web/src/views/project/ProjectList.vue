@@ -85,7 +85,7 @@
           <template #default="{ row }">
             <el-button type="primary" link @click="$router.push(`/projects/${row.id}`)">查看</el-button>
             <el-button v-if="canEditProject(row)" type="primary" link @click="showEditDialog(row)">编辑</el-button>
-            <el-popconfirm v-if="canEditProject(row)" title="确定删除该项目吗？" @confirm="handleDelete(row.id)">
+            <el-popconfirm v-if="canEditProject(row)" title="确定删除该项目吗？" width="200" @confirm="handleDelete(row.id)">
               <template #reference>
                 <el-button type="danger" link>删除</el-button>
               </template>

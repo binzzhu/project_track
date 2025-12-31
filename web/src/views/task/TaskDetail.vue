@@ -84,7 +84,7 @@
           <template #default="{ row }">
             <el-button type="success" link @click="handlePreview(row)">预览</el-button>
             <el-button type="primary" link @click="handleDownload(row)">下载</el-button>
-            <el-popconfirm v-if="canDeleteDoc" title="确定删除该交付件吗？" @confirm="handleDeleteDoc(row)">
+            <el-popconfirm v-if="canDeleteDoc" title="确定删除该交付件吗？" width="210" @confirm="handleDeleteDoc(row)">
               <template #reference>
                 <el-button type="danger" link>删除</el-button>
               </template>

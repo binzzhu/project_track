@@ -32,3 +32,11 @@ a {
 .el-pagination {
   display: flex;
 }
+
+/* Popconfirm 按钮居中显示 */
+.el-popconfirm__action {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}

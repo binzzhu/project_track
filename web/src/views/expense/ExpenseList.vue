@@ -229,7 +229,7 @@
         <el-table-column label="操作" width="150" header-align="center" align="center" fixed="right">
           <template #default="{ row }">
             <el-button v-if="canEdit(row)" type="primary" link @click="showEditDialog(row)">编辑</el-button>
-            <el-popconfirm v-if="canDelete(row)" title="确定删除该费用记录吗？" @confirm="handleDelete(row.id)">
+            <el-popconfirm v-if="canDelete(row)" title="确定删除该费用记录吗？" width="220" @confirm="handleDelete(row.id)">
               <template #reference>
                 <el-button type="danger" link>删除</el-button>
               </template>

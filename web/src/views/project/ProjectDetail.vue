@@ -63,7 +63,7 @@
         </el-table-column>
         <el-table-column v-if="canEditProject" label="操作" width="80">
           <template #default="{ row }">
-            <el-popconfirm title="确定移除该成员吗？" @confirm="handleRemoveMember(row.id)">
+            <el-popconfirm title="确定移除该成员吗？" width="200" @confirm="handleRemoveMember(row.id)">
               <template #reference>
                 <el-button type="danger" link size="small">移除</el-button>
               </template>
@@ -122,7 +122,7 @@
             >
               <el-button type="warning" size="small"><el-icon><Upload /></el-icon> 上传文档</el-button>
             </el-upload>
-            <el-popconfirm v-if="canEditProject && !phase.is_fixed" title="确定删除该阶段吗？" @confirm="handleDeletePhase(phase.id)">
+            <el-popconfirm v-if="canEditProject && !phase.is_fixed" title="确定删除该阶段吗？" width="200" @confirm="handleDeletePhase(phase.id)">
               <template #reference>
                 <el-button type="danger" size="small" @click.stop>删除阶段</el-button>
               </template>
@@ -133,49 +133,61 @@
           <el-tabs type="border-card" class="phase-content-tabs">
             <el-tab-pane label="任务列表">
               <el-table :data="getPhaseTasks(phase.id)" stripe size="small" empty-text="暂无任务">
-                <el-table-column prop="task_name" label="任务名称" min-width="180">
+                <el-table-column prop="task_name" label="任务名称" min-width="180" header-align="center" align="center">
                   <template #default="{ row }">
                     <el-link type="primary" @click="showTaskDetail(row)">{{ row.task_name }}</el-link>
                   </template>
                 </el-table-column>
-                <el-table-column prop="assignee" label="负责人" width="100">
+                <el-table-column prop="assignee" label="负责人" width="100" header-align="center" align="center">
                   <template #default="{ row }">{{ row.assignee?.name || '-' }}</template>
                 </el-table-column>
-                <el-table-column prop="status" label="状态" width="100">
+                <el-table-column prop="status" label="状态" width="100" header-align="center" align="center">
                   <template #default="{ row }">
                     <el-tag :type="taskStatusTypes[row.status]" size="small">{{ taskStatusLabels[row.status] }}</el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column prop="deadline" label="截止日期" width="110">
+                <el-table-column prop="deadline" label="截止日期" width="110" header-align="center" align="center">
                   <template #default="{ row }">{{ formatDate(row.deadline) }}</template>
                 </el-table-column>
-                <el-table-column v-if="canEditProject" label="操作" width="100">
+                <el-table-column v-if="canEditProject" label="操作" width="180" header-align="center" align="center">
                   <template #default="{ row }">
-                    <el-popconfirm title="确定删除该任务吗？" @confirm="handleDeleteTask(row.id)">
-                      <template #reference>
-                        <el-button type="danger" link size="small">删除</el-button>
-                      </template>
-                    </el-popconfirm>
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 4px;">
+                      <el-dropdown v-if="canUpdateTaskStatus(row)" @command="(cmd) => handleTaskStatusUpdate(row, cmd)">
+                        <el-button type="primary" link size="small">更新状态</el-button>
+                        <template #dropdown>
+                          <el-dropdown-menu>
+                            <el-dropdown-item v-if="row.status === 'not_started'" command="in_progress">开始任务</el-dropdown-item>
+                            <el-dropdown-item v-if="row.status === 'in_progress'" command="completed">完成任务</el-dropdown-item>
+                            <el-dropdown-item v-if="row.status === 'completed'" command="in_progress">重新开始</el-dropdown-item>
+                          </el-dropdown-menu>
+                        </template>
+                      </el-dropdown>
+                      <el-popconfirm title="确定删除该任务吗？" width="200" @confirm="handleDeleteTask(row.id)">
+                        <template #reference>
+                          <el-button type="danger" link size="small">删除</el-button>
+                        </template>
+                      </el-popconfirm>
+                    </div>
                   </template>
                 </el-table-column>
               </el-table>
             </el-tab-pane>
             <el-tab-pane label="文档资料">
               <el-table :data="getPhaseDocs(phase.id)" stripe size="small" empty-text="暂无文档">
-                <el-table-column prop="doc_name" label="文档名称" min-width="180" />
-                <el-table-column prop="doc_type" label="类型" width="80" />
-                <el-table-column prop="file_size" label="大小" width="80">
+                <el-table-column prop="doc_name" label="文档名称" min-width="180" header-align="center" align="center" />
+                <el-table-column prop="doc_type" label="类型" width="80" header-align="center" align="center" />
+                <el-table-column prop="file_size" label="大小" width="80" header-align="center" align="center">
                   <template #default="{ row }">{{ formatFileSize(row.file_size) }}</template>
                 </el-table-column>
-                <el-table-column prop="uploader.name" label="上传人" width="80" />
-                <el-table-column prop="created_at" label="上传时间" width="140">
+                <el-table-column prop="uploader.name" label="上传人" width="80" header-align="center" align="center" />
+                <el-table-column prop="created_at" label="上传时间" width="140" header-align="center" align="center">
                   <template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
                 </el-table-column>
-                <el-table-column label="操作" width="180">
+                <el-table-column label="操作" width="180" header-align="center" align="center">
                   <template #default="{ row }">
                     <el-button type="success" link size="small" @click="handlePreview(row)">预览</el-button>
                     <el-button type="primary" link size="small" @click="handleDownload(row)">下载</el-button>
-                    <el-popconfirm v-if="canDeleteDocument(row)" title="确定删除该文档吗？" @confirm="handleDeleteDocument(row.id)">
+                    <el-popconfirm v-if="canDeleteDocument(row)" title="确定删除该文档吗？" width="200" @confirm="handleDeleteDocument(row.id)">
                       <template #reference>
                         <el-button type="danger" link size="small">删除</el-button>
                       </template>
@@ -306,7 +318,7 @@
               <template #default="{ row }">
                 <el-button type="success" link size="small" @click="handlePreview(row)">预览</el-button>
                 <el-button type="primary" link size="small" @click="handleDownload(row)">下载</el-button>
-                <el-popconfirm v-if="canDeleteDocument(row)" title="确定删除该文件吗？" @confirm="handleDeleteDocument(row.id)">
+                <el-popconfirm v-if="canDeleteDocument(row)" title="确定删除该文件吗？" width="200" @confirm="handleDeleteDocument(row.id)">
                   <template #reference>
                     <el-button type="danger" link size="small">删除</el-button>
                   </template>
@@ -668,6 +680,31 @@ const handleTaskStatusChange = async (status) => {
     await updateTaskStatus(currentTask.value.id, status)
     ElMessage.success('状态更新成功')
     currentTask.value.status = status
+    fetchTasks()
+  } catch (error) {
+    console.error('更新状态失败:', error)
+  }
+}
+
+// 判断是否可以更新任务状态
+const canUpdateTaskStatus = (task) => {
+  const isTaskAssignee = task.assignee_id === userStore.userId
+  const isProjectManager = project.value.manager_id === userStore.userId
+  
+  // 任务未完成：任务负责人或项目经理都可以更改状态
+  if (task.status !== 'completed') {
+    return isTaskAssignee || isProjectManager
+  }
+  
+  // 任务已完成：只有项目经理可以重新开始
+  return isProjectManager
+}
+
+// 处理任务状态更新（项目阶段任务列表中）
+const handleTaskStatusUpdate = async (task, status) => {
+  try {
+    await updateTaskStatus(task.id, status)
+    ElMessage.success('状态更新成功')
     fetchTasks()
   } catch (error) {
     console.error('更新状态失败:', error)
