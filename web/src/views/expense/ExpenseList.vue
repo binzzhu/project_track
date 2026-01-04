@@ -1,10 +1,10 @@
 <template>
   <div class="expense-list">
-    <!-- 研发项目费用执行情况报表 -->
+    <!-- 研发项目费用统计表 -->
     <el-card class="statistics-card">
       <template #header>
         <div class="card-header">
-          <span>研发项目费用执行情况报表</span>
+          <span>研发项目费用统计表</span>
           <el-button type="primary" size="small" @click="fetchComparison">
             <el-icon><Refresh /></el-icon> 刷新
           </el-button>
