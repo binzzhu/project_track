@@ -1,11 +1,10 @@
 package config
 
 import (
+	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 
-	"github.com/glebarez/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -13,20 +12,23 @@ import (
 var DB *gorm.DB
 
 func InitDatabase() {
-	// 确保数据库目录存在
-	dbDir := filepath.Dir(DBPath)
-	if err := os.MkdirAll(dbDir, 0755); err != nil {
-		log.Fatal("创建数据库目录失败:", err)
-	}
+	dsn := fmt.Sprintf(
+		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		DBUser,
+		DBPassword,
+		DBHost,
+		DBPort,
+		DBName,
+	)
 
 	var err error
-	DB, err = gorm.Open(sqlite.Open(DBPath), &gorm.Config{
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
 		log.Fatal("数据库连接失败:", err)
 	}
-	log.Printf("数据库连接成功: %s", DBPath)
+	log.Printf("数据库连接成功: %s:%s/%s", DBHost, DBPort, DBName)
 }
 
 func GetDB() *gorm.DB {

@@ -18,8 +18,12 @@ var (
 	UploadPath  = getEnv("UPLOAD_PATH", "./uploads")
 	MaxFileSize = int64(100 * 1024 * 1024) // 100MB
 
-	// 数据库配置
-	DBPath = getEnv("DB_PATH", "./data/project_flow.db")
+	// 数据库配置（MySQL）
+	DBHost     = getEnv("DB_HOST", "localhost")
+	DBPort     = getEnv("DB_PORT", "3306")
+	DBUser     = getEnv("DB_USER", "root")
+	DBPassword = getEnv("DB_PASSWORD", "")
+	DBName     = getEnv("DB_NAME", "project_flow")
 
 	// 密码复杂度要求
 	MinPasswordLength = 8

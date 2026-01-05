@@ -10,13 +10,15 @@ services:
     restart: unless-stopped
     environment:
       - SERVER_PORT=:8080
-      - DB_PATH=/app/data/project_flow.db
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=project_flow
+      - DB_PASSWORD=project_flow_password
+      - DB_NAME=project_flow
       - UPLOAD_PATH=/app/uploads
       - JWT_SECRET=${JWT_SECRET:-project-flow-secret-key-2024}
       - TZ=Asia/Shanghai
     volumes:
-      # 持久化数据库
-      - ./data/db:/app/data
       # 持久化上传文件
       - ./data/uploads:/app/uploads
     networks:
@@ -27,6 +29,27 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
+  # 数据库服务（MySQL）
+  mysql:
+    image: mysql:8.0
+    container_name: project-flow-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=project_flow
+      - MYSQL_USER=project_flow
+      - MYSQL_PASSWORD=project_flow_password
+      - TZ=Asia/Shanghai
+    command: [
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci",
+      "--max-connections=200"
+    ]
+    volumes:
+      - ./data/db:/var/lib/mysql
+    networks:
+      - project-flow-network
 
   # 前端服务
   frontend:

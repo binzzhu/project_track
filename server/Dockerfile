@@ -46,7 +46,11 @@ USER appuser
 
 # 设置环境变量
 ENV SERVER_PORT=:8080
-ENV DB_PATH=/app/data/project_flow.db
+ENV DB_HOST=mysql
+ENV DB_PORT=3306
+ENV DB_USER=project_flow
+ENV DB_PASSWORD=project_flow_password
+ENV DB_NAME=project_flow
 ENV UPLOAD_PATH=/app/uploads
 
 # 暴露端口
