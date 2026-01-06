@@ -1,5 +1,5 @@
 # 构建阶段
-FROM node:20-bookworm AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ RUN npm config set registry https://registry.npmmirror.com
 COPY package*.json ./
 
 # 安装依赖
-RUN npm ci --prefer-offline --no-audit
+RUN npm install
 
 # 复制源码
 COPY . .
@@ -19,13 +19,13 @@ COPY . .
 RUN npm run build
 
 # 运行阶段
-FROM nginx:1.29.4
+FROM nginx:alpine
 
 # 删除默认配置
 RUN rm /etc/nginx/conf.d/default.conf
 
 # 安装健康检查所需工具
-RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+RUN apk --no-cache add wget
 
 # 复制nginx配置
 COPY nginx.conf /etc/nginx/conf.d/
