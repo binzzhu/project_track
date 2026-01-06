@@ -1,8 +1,10 @@
 # 构建阶段
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24.3-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
+ENV GOTOOLCHAIN=auto
+ENV GOPROXY=https://goproxy.cn,direct
 
 # 安装必要的构建工具
 RUN apk add --no-cache git
@@ -20,7 +22,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 # 运行阶段
-FROM alpine:latest
+FROM alpine:3.19
 
 # 安装ca证书和时区数据
 RUN apk --no-cache add ca-certificates tzdata wget
@@ -48,9 +50,9 @@ USER appuser
 ENV SERVER_PORT=:8080
 ENV DB_HOST=mysql
 ENV DB_PORT=3306
-ENV DB_USER=project_flow
-ENV DB_PASSWORD=project_flow_password
-ENV DB_NAME=project_flow
+ENV DB_USER=project_track
+ENV DB_PASSWORD=project_track_password
+ENV DB_NAME=project_track
 ENV UPLOAD_PATH=/app/uploads
 
 # 暴露端口
