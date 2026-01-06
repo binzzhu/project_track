@@ -71,7 +71,9 @@ services:
       - "${APP_PORT:-80}:80"
     environment:
       - TZ=Asia/Shanghai
-    # 前端容器不再依赖后端容器（代理至宿主机）
+    depends_on:
+      backend:
+        condition: service_healthy
     networks:
       - project-track-network
     healthcheck:
