@@ -139,7 +139,7 @@ const previewType = ref('')
 const previewContent = ref('')
 const currentPreviewFile = ref(null)
 
-const uploadUrl = 'http://localhost:8080/api/documents/upload'
+const uploadUrl = '/api/documents/upload'
 const uploadHeaders = computed(() => ({ Authorization: `Bearer ${localStorage.getItem('token')}` }))
 
 const statusLabels = { not_started: '未开始', in_progress: '进行中', completed: '已完成', rejected: '被驳回' }

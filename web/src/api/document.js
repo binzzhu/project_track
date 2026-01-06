@@ -35,5 +35,5 @@ export function archiveDocument(id) {
 // 获取下载URL（带token参数）
 export function getDownloadUrl(id) {
   const token = localStorage.getItem('token')
-  return `http://localhost:8080/api/documents/${id}/download?token=${token}`
+  return `/api/documents/${id}/download?token=${token}`
 }

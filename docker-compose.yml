@@ -1,20 +1,18 @@
-version: '3.8'
-
 services:
   # 后端服务
   backend:
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: project-flow-backend
+    container_name: project-track-backend
     restart: unless-stopped
     environment:
       - SERVER_PORT=:8080
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_USER=project_flow
-      - DB_PASSWORD=project_flow_password
-      - DB_NAME=project_flow
+      - DB_USER=project_track
+      - DB_PASSWORD=project_track_password
+      - DB_NAME=project_track
       - UPLOAD_PATH=/app/uploads
       - JWT_SECRET=${JWT_SECRET:-project-flow-secret-key-2024}
       - TZ=Asia/Shanghai
@@ -22,24 +20,27 @@ services:
       # 持久化上传文件
       - ./data/uploads:/app/uploads
     networks:
-      - project-flow-network
+      - project-track-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   # 数据库服务（MySQL）
   mysql:
     image: mysql:8.0
-    container_name: project-flow-mysql
+    container_name: project-track-mysql
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root_password
-      - MYSQL_DATABASE=project_flow
-      - MYSQL_USER=project_flow
-      - MYSQL_PASSWORD=project_flow_password
+      - MYSQL_DATABASE=project_track
+      - MYSQL_USER=project_track
+      - MYSQL_PASSWORD=project_track_password
       - TZ=Asia/Shanghai
     command: [
       "--character-set-server=utf8mb4",
@@ -49,24 +50,30 @@ services:
     volumes:
       - ./data/db:/var/lib/mysql
     networks:
-      - project-flow-network
+      - project-track-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    ports:
+      - "3306:3306"
 
   # 前端服务
   frontend:
     build:
       context: ./web
       dockerfile: Dockerfile
-    container_name: project-flow-frontend
+    container_name: project-track-frontend
     restart: unless-stopped
     ports:
       - "${APP_PORT:-80}:80"
     environment:
       - TZ=Asia/Shanghai
-    depends_on:
-      backend:
-        condition: service_healthy
+    # 前端容器不再依赖后端容器（代理至宿主机）
     networks:
-      - project-flow-network
+      - project-track-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
       interval: 30s
@@ -75,7 +82,7 @@ services:
       start_period: 5s
 
 networks:
-  project-flow-network:
+  project-track-network:
     driver: bridge
 
 volumes:
