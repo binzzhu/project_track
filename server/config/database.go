@@ -23,17 +23,23 @@ func InitDatabase() {
 	)
 
 	var err error
-	for i := 0; i < 30; i++ {
+	maxRetries := 3
+	for i := 0; i < maxRetries; i++ {
 		DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Info),
 		})
 		if err == nil {
-			break
+			log.Printf("数据库连接成功: %s:%s/%s", DBHost, DBPort, DBName)
+			return
 		}
-		time.Sleep(2 * time.Second)
+		log.Printf("数据库连接失败 (尝试 %d/%d): %v", i+1, maxRetries, err)
+		if i < maxRetries-1 {
+			time.Sleep(2 * time.Second)
+		}
 	}
+
 	if err != nil {
-		log.Fatal("数据库连接失败:", err)
+		log.Fatal("数据库连接失败（已达最大重试次数）:", err)
 	}
 	log.Printf("数据库连接成功: %s:%s/%s", DBHost, DBPort, DBName)
 }
