@@ -23,9 +23,11 @@ func SetupRoutes(r *gin.Engine) {
 	// API路由组
 	api := r.Group("/api")
 	{
-		// 健康检查接口
 		api.GET("/health", func(c *gin.Context) {
 			c.JSON(200, gin.H{"status": "ok", "message": "服务运行正常"})
+		})
+		api.HEAD("/health", func(c *gin.Context) {
+			c.Status(200)
 		})
 
 		// 公开接口
