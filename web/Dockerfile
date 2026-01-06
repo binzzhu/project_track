@@ -1,5 +1,5 @@
 # 构建阶段
-FROM node:20-alpine AS builder
+FROM node:20-bookworm AS builder
 
 WORKDIR /app
 
@@ -19,13 +19,13 @@ COPY . .
 RUN npm run build
 
 # 运行阶段
-FROM nginx:alpine
+FROM nginx:1.29.4
 
 # 删除默认配置
 RUN rm /etc/nginx/conf.d/default.conf
 
 # 安装健康检查所需工具
-RUN apk --no-cache add wget
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
 # 复制nginx配置
 COPY nginx.conf /etc/nginx/conf.d/
