@@ -89,12 +89,15 @@ func (dc *DocumentController) Upload(c *gin.Context) {
 		}
 	}
 
-	var taskIDUint64 uint64
+	var taskID *uint
 	if taskIDStr != "" {
-		if taskIDUint64, err = strconv.ParseUint(taskIDStr, 10, 32); err != nil {
+		taskIDUint64, err := strconv.ParseUint(taskIDStr, 10, 32)
+		if err != nil {
 			utils.BadRequest(c, "任务参数错误")
 			return
 		}
+		tmp := uint(taskIDUint64)
+		taskID = &tmp
 	}
 
 	docName := c.PostForm("doc_name")
@@ -144,9 +147,9 @@ func (dc *DocumentController) Upload(c *gin.Context) {
 
 		// 如果是任务交付件，检查是否是任务负责人
 		isTaskAssignee := false
-		if taskIDUint64 > 0 {
+		if taskID != nil {
 			var task models.Task
-			if db.First(&task, taskIDUint64).Error == nil {
+			if db.First(&task, *taskID).Error == nil {
 				// 任务未完成时，任务负责人可以上传
 				if task.Status != config.TaskCompleted && task.AssigneeID == userID {
 					isTaskAssignee = true
@@ -193,7 +196,7 @@ func (dc *DocumentController) Upload(c *gin.Context) {
 	doc := models.Document{
 		ProjectID:  uint(projectIDUint64),
 		PhaseID:    uint(phaseIDUint64),
-		TaskID:     uint(taskIDUint64),
+		TaskID:     taskID,
 		DocName:    docName,
 		DocType:    docType,
 		FilePath:   filePath,
@@ -303,11 +306,23 @@ func (dc *DocumentController) Update(c *gin.Context) {
 func (dc *DocumentController) Delete(c *gin.Context) {
 	id := c.Param("id")
 
-	userID, _ := c.Get("userID")
-	roleCode, _ := c.Get("roleCode")
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		utils.Unauthorized(c, "请先登录")
+		return
+	}
+	userID, ok := userIDValue.(uint)
+	if !ok {
+		utils.ServerError(c, "用户信息异常")
+		return
+	}
+
+	roleCodeValue, _ := c.Get("roleCode")
+	roleCode, _ := roleCodeValue.(string)
+
 	db := config.GetDB()
 	var doc models.Document
-	if err := db.Preload("Task").First(&doc, id).Error; err != nil {
+	if err := db.First(&doc, id).Error; err != nil {
 		utils.NotFound(c, "文档不存在")
 		return
 	}
@@ -316,19 +331,19 @@ func (dc *DocumentController) Delete(c *gin.Context) {
 	// 1. 如果是任务交付件，且任务已完成，只有项目经理有权限删除
 	// 2. 如果是任务交付件，且任务未完成，只有任务负责人有权限删除
 	// 3. 其他情况下，管理员或上传者可以删除
-	if doc.TaskID > 0 {
+	if doc.TaskID != nil {
 		// 获取任务信息
 		var task models.Task
-		if err := db.Preload("Project").First(&task, doc.TaskID).Error; err == nil {
+		if err := db.Preload("Project").First(&task, *doc.TaskID).Error; err == nil {
 			// 如果任务已完成，只有项目经理有权限删除
 			if task.Status == config.TaskCompleted {
-				if roleCode != config.RoleAdmin && task.Project.ManagerID != userID.(uint) {
+				if roleCode != config.RoleAdmin && task.Project.ManagerID != userID {
 					utils.Forbidden(c, "任务完成后，只有项目经理有权限删除交付件")
 					return
 				}
 			} else {
 				// 任务未完成，只有任务负责人可以删除
-				if roleCode != config.RoleAdmin && task.AssigneeID != userID.(uint) {
+				if roleCode != config.RoleAdmin && task.AssigneeID != userID {
 					utils.Forbidden(c, "只有任务负责人才能删除交付件")
 					return
 				}
@@ -336,7 +351,7 @@ func (dc *DocumentController) Delete(c *gin.Context) {
 		}
 	} else {
 		// 非任务交付件，管理员或上传者可以删除
-		if roleCode != config.RoleAdmin && doc.UploadedBy != userID.(uint) {
+		if roleCode != config.RoleAdmin && doc.UploadedBy != userID {
 			utils.Forbidden(c, "只有管理员或上传者才能删除文档")
 			return
 		}

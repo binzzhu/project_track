@@ -118,7 +118,8 @@ type Document struct {
 	ProjectID  uint           `json:"project_id"`
 	PhaseID    uint           `json:"phase_id"` // 所属阶段ID
 	Phase      *ProjectPhase  `gorm:"foreignKey:PhaseID" json:"phase,omitempty"`
-	TaskID     uint           `json:"task_id"`
+	TaskID     *uint          `json:"task_id"`                                 // 关联任务ID（可为空）
+	Task       *Task          `gorm:"foreignKey:TaskID" json:"task,omitempty"` // 关联任务
 	DocName    string         `gorm:"size:255;not null" json:"doc_name"`       // 资料名称
 	DocType    string         `gorm:"size:50" json:"doc_type"`                 // 资料类型
 	FilePath   string         `gorm:"size:500" json:"file_path"`               // 文件路径
