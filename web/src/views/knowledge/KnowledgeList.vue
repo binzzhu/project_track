@@ -95,7 +95,12 @@
         </el-form-item>
         <el-form-item label="所属分类">
           <el-select v-model="uploadForm.category_id" placeholder="请选择分类">
-            <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
+            <el-option
+              v-for="cat in categories"
+              :key="cat.id"
+              :label="cat.name"
+              :value="cat.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="关键词">
@@ -125,7 +130,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getKnowledgeList, getCategories, uploadKnowledge, downloadKnowledge, deleteKnowledge } from '@/api/knowledge'
+import { getKnowledgeList, uploadKnowledge, downloadKnowledge, deleteKnowledge } from '@/api/knowledge'
 import { getUsers } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -134,7 +139,14 @@ const userStore = useUserStore()
 
 const loading = ref(false)
 const items = ref([])
-const categories = ref([])
+// 前端固定资料分类，ID 与后端数据一一对应
+const categories = ref([
+  { id: 1, name: '项目资料' },
+  { id: 3, name: '技术规范' },
+  { id: 4, name: '案例资料' },
+  { id: 5, name: '培训材料' },
+  { id: 2, name: '政策文件' }
+])
 const users = ref([]) // 用户列表
 const currentCategory = ref('')
 const keyword = ref('')
@@ -153,11 +165,6 @@ const formatDateTime = (dateStr) => dateStr ? new Date(dateStr).toLocaleString('
 const canDelete = (item) => {
   if (userStore.isAdmin || userStore.isDeptManager) return true
   return item.uploaded_by === userStore.userId
-}
-
-const fetchCategories = async () => {
-  const res = await getCategories()
-  categories.value = res.data || []
 }
 
 const fetchUsers = async () => {
@@ -313,7 +320,6 @@ const handleDelete = async (row) => {
 }
 
 onMounted(() => {
-  fetchCategories()
   fetchUsers()
   fetchItems()
 })

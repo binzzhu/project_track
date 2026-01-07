@@ -90,13 +90,12 @@ func InitDefaultData() {
 		db.Create(&admin)
 	}
 
-	// 初始化知识库分类
 	categories := []KBCategory{
-		{Name: "项目模板", Description: "项目相关模板文档", SortOrder: 1},
-		{Name: "政策文件", Description: "政策法规文件", SortOrder: 2},
-		{Name: "技术规范", Description: "技术规范标准", SortOrder: 3},
-		{Name: "案例资料", Description: "项目案例资料", SortOrder: 4},
-		{Name: "培训材料", Description: "培训学习材料", SortOrder: 5},
+		{Name: "项目资料", Description: "项目相关资料", SortOrder: 1},
+		{Name: "技术规范", Description: "技术规范标准", SortOrder: 2},
+		{Name: "案例资料", Description: "项目案例资料", SortOrder: 3},
+		{Name: "培训材料", Description: "培训学习材料", SortOrder: 4},
+		{Name: "政策文件", Description: "政策法规文件", SortOrder: 5},
 	}
 
 	for _, cat := range categories {
