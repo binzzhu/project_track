@@ -66,9 +66,37 @@ func (dc *DocumentController) Upload(c *gin.Context) {
 		return
 	}
 
-	projectID, _ := strconv.ParseUint(c.PostForm("project_id"), 10, 32)
-	phaseID, _ := strconv.ParseUint(c.PostForm("phase_id"), 10, 32)
-	taskID, _ := strconv.ParseUint(c.PostForm("task_id"), 10, 32)
+	projectIDStr := c.PostForm("project_id")
+	phaseIDStr := c.PostForm("phase_id")
+	taskIDStr := c.PostForm("task_id")
+
+	if projectIDStr == "" {
+		utils.BadRequest(c, "项目参数错误")
+		return
+	}
+
+	projectIDUint64, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		utils.BadRequest(c, "项目参数错误")
+		return
+	}
+
+	var phaseIDUint64 uint64
+	if phaseIDStr != "" {
+		if phaseIDUint64, err = strconv.ParseUint(phaseIDStr, 10, 32); err != nil {
+			utils.BadRequest(c, "阶段参数错误")
+			return
+		}
+	}
+
+	var taskIDUint64 uint64
+	if taskIDStr != "" {
+		if taskIDUint64, err = strconv.ParseUint(taskIDStr, 10, 32); err != nil {
+			utils.BadRequest(c, "任务参数错误")
+			return
+		}
+	}
+
 	docName := c.PostForm("doc_name")
 	docType := c.PostForm("doc_type")
 	remark := c.PostForm("remark")
@@ -77,38 +105,50 @@ func (dc *DocumentController) Upload(c *gin.Context) {
 		docName = header.Filename
 	}
 
-	userID, _ := c.Get("userID")
-	roleCode, _ := c.Get("roleCode")
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		utils.Unauthorized(c, "请先登录")
+		return
+	}
+	userID, ok := userIDValue.(uint)
+	if !ok {
+		utils.ServerError(c, "用户信息异常")
+		return
+	}
+
+	roleCodeValue, _ := c.Get("roleCode")
+	roleCode, _ := roleCodeValue.(string)
+
+	db := config.GetDB()
 
 	// 检查上传权限：管理员始终可以上传
-	if roleCode != config.RoleAdmin && projectID > 0 {
-		db := config.GetDB()
+	if roleCode != config.RoleAdmin && projectIDUint64 > 0 {
 		var project models.Project
-		if err := db.First(&project, projectID).Error; err != nil {
+		if err := db.First(&project, projectIDUint64).Error; err != nil {
 			utils.NotFound(c, "项目不存在")
 			return
 		}
 
 		// 检查是否是项目经理
-		isProjectManager := project.ManagerID == userID.(uint)
+		isProjectManager := project.ManagerID == userID
 
 		// 检查是否是创建者
-		isCreator := project.CreatedBy == userID.(uint)
+		isCreator := project.CreatedBy == userID
 
 		// 检查是否是子负责人（在project_members表中的用户即为子负责人）
 		isSubManager := false
 		var member models.ProjectMember
-		if db.Where("project_id = ? AND user_id = ?", projectID, userID).First(&member).RowsAffected > 0 {
+		if db.Where("project_id = ? AND user_id = ?", uint(projectIDUint64), userID).First(&member).RowsAffected > 0 {
 			isSubManager = true
 		}
 
 		// 如果是任务交付件，检查是否是任务负责人
 		isTaskAssignee := false
-		if taskID > 0 {
+		if taskIDUint64 > 0 {
 			var task models.Task
-			if db.First(&task, taskID).Error == nil {
+			if db.First(&task, taskIDUint64).Error == nil {
 				// 任务未完成时，任务负责人可以上传
-				if task.Status != config.TaskCompleted && task.AssigneeID == userID.(uint) {
+				if task.Status != config.TaskCompleted && task.AssigneeID == userID {
 					isTaskAssignee = true
 				}
 				// 任务已完成时，只有项目经理可以上传
@@ -150,11 +190,10 @@ func (dc *DocumentController) Upload(c *gin.Context) {
 		return
 	}
 
-	db := config.GetDB()
 	doc := models.Document{
-		ProjectID:  uint(projectID),
-		PhaseID:    uint(phaseID),
-		TaskID:     uint(taskID),
+		ProjectID:  uint(projectIDUint64),
+		PhaseID:    uint(phaseIDUint64),
+		TaskID:     uint(taskIDUint64),
 		DocName:    docName,
 		DocType:    docType,
 		FilePath:   filePath,
@@ -162,7 +201,7 @@ func (dc *DocumentController) Upload(c *gin.Context) {
 		MimeType:   header.Header.Get("Content-Type"),
 		Version:    "1.0",
 		Status:     "pending",
-		UploadedBy: userID.(uint),
+		UploadedBy: userID,
 		Remark:     remark,
 	}
 
