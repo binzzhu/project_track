@@ -70,7 +70,19 @@ func (kc *KnowledgeController) Upload(c *gin.Context) {
 	}
 
 	title := c.PostForm("title")
-	categoryID, _ := strconv.ParseUint(c.PostForm("category_id"), 10, 32)
+
+	categoryStr := c.PostForm("category_id")
+	if categoryStr == "" {
+		utils.BadRequest(c, "请选择资料分类")
+		return
+	}
+	categoryIDUint64, err := strconv.ParseUint(categoryStr, 10, 32)
+	if err != nil {
+		utils.BadRequest(c, "分类参数错误")
+		return
+	}
+	categoryID := uint(categoryIDUint64)
+
 	keywords := c.PostForm("keywords")
 	description := c.PostForm("description")
 	status := c.DefaultPostForm("status", "published")
@@ -79,7 +91,24 @@ func (kc *KnowledgeController) Upload(c *gin.Context) {
 		title = header.Filename
 	}
 
-	userID, _ := c.Get("userID")
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		utils.Unauthorized(c, "请先登录")
+		return
+	}
+	userID, ok := userIDValue.(uint)
+	if !ok {
+		utils.ServerError(c, "用户信息异常")
+		return
+	}
+
+	db := config.GetDB()
+
+	var category models.KBCategory
+	if err := db.First(&category, categoryID).Error; err != nil {
+		utils.BadRequest(c, "所选分类不存在")
+		return
+	}
 
 	// 创建上传目录
 	uploadDir := filepath.Join(config.UploadPath, "knowledge", time.Now().Format("200601"))
@@ -106,10 +135,9 @@ func (kc *KnowledgeController) Upload(c *gin.Context) {
 		return
 	}
 
-	db := config.GetDB()
 	kb := models.KnowledgeBase{
 		Title:       title,
-		CategoryID:  uint(categoryID),
+		CategoryID:  categoryID,
 		Keywords:    keywords,
 		Description: description,
 		FilePath:    filePath,
@@ -117,7 +145,7 @@ func (kc *KnowledgeController) Upload(c *gin.Context) {
 		MimeType:    header.Header.Get("Content-Type"),
 		Version:     "1.0",
 		Status:      status,
-		UploadedBy:  userID.(uint),
+		UploadedBy:  userID,
 	}
 
 	if err := db.Create(&kb).Error; err != nil {

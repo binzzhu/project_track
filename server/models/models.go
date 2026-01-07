@@ -45,7 +45,7 @@ type Project struct {
 	ProjectType     string         `gorm:"size:50;not null" json:"project_type"`      // 项目类型：成本性/资本性
 	ManagerID       uint           `gorm:"not null" json:"manager_id"`                // 项目负责人ID
 	Manager         *User          `gorm:"foreignKey:ManagerID" json:"manager,omitempty"`
-	SubManagerID    uint           `json:"sub_manager_id"` // 子负责人ID（可选，通过项目成员维护）
+	SubManagerID    *uint          `json:"sub_manager_id"` // 子负责人ID（可选，通过项目成员维护）
 	SubManager      *User          `gorm:"foreignKey:SubManagerID" json:"sub_manager,omitempty"`
 	ContractNo      string         `gorm:"size:100" json:"contract_no"`                       // 合同编号（非必填）
 	BudgetCode      string         `gorm:"size:100" json:"budget_code"`                       // 预算编码（非必填）
