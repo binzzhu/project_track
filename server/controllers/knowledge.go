@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -98,6 +99,7 @@ func (kc *KnowledgeController) Upload(c *gin.Context) {
 	}
 	userID, ok := userIDValue.(uint)
 	if !ok {
+		log.Printf("知识库上传用户信息类型异常: %#v\n", userIDValue)
 		utils.ServerError(c, "用户信息异常")
 		return
 	}
@@ -106,6 +108,7 @@ func (kc *KnowledgeController) Upload(c *gin.Context) {
 
 	var category models.KBCategory
 	if err := db.First(&category, categoryID).Error; err != nil {
+		log.Printf("知识库上传分类不存在，categoryID=%d, err=%v\n", categoryID, err)
 		utils.BadRequest(c, "所选分类不存在")
 		return
 	}
@@ -113,6 +116,7 @@ func (kc *KnowledgeController) Upload(c *gin.Context) {
 	// 创建上传目录
 	uploadDir := filepath.Join(config.UploadPath, "knowledge", time.Now().Format("200601"))
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		log.Printf("知识库上传创建目录失败，path=%s, err=%v\n", uploadDir, err)
 		utils.ServerError(c, "创建目录失败")
 		return
 	}
@@ -125,12 +129,14 @@ func (kc *KnowledgeController) Upload(c *gin.Context) {
 	// 保存文件
 	out, err := os.Create(filePath)
 	if err != nil {
+		log.Printf("知识库上传保存文件失败，file=%s, err=%v\n", filePath, err)
 		utils.ServerError(c, "保存文件失败")
 		return
 	}
 	defer out.Close()
 
 	if _, err := io.Copy(out, file); err != nil {
+		log.Printf("知识库上传写入文件失败，file=%s, err=%v\n", filePath, err)
 		utils.ServerError(c, "保存文件失败")
 		return
 	}
@@ -149,6 +155,7 @@ func (kc *KnowledgeController) Upload(c *gin.Context) {
 	}
 
 	if err := db.Create(&kb).Error; err != nil {
+		log.Printf("知识库上传保存信息失败，kb=%+v, err=%v\n", kb, err)
 		utils.ServerError(c, "保存信息失败")
 		return
 	}
