@@ -143,6 +143,18 @@ func (tc *TaskController) Create(c *gin.Context) {
 		return
 	}
 
+	if req.AssigneeID != 0 {
+		var assignee models.User
+		if err := db.Preload("Role").First(&assignee, req.AssigneeID).Error; err != nil {
+			utils.BadRequest(c, "任务负责人不存在")
+			return
+		}
+		if assignee.Role != nil && assignee.Role.Code == config.RoleAdmin {
+			utils.BadRequest(c, "系统管理员不能作为任务负责人")
+			return
+		}
+	}
+
 	task := models.Task{
 		ProjectID:    req.ProjectID,
 		PhaseID:      req.PhaseID,
@@ -207,6 +219,18 @@ func (tc *TaskController) BatchCreate(c *gin.Context) {
 
 	var createdTasks []models.Task
 	for _, t := range req.Tasks {
+		if t.AssigneeID != 0 {
+			var assignee models.User
+			if err := db.Preload("Role").First(&assignee, t.AssigneeID).Error; err != nil {
+				utils.BadRequest(c, "任务负责人不存在")
+				return
+			}
+			if assignee.Role != nil && assignee.Role.Code == config.RoleAdmin {
+				utils.BadRequest(c, "系统管理员不能作为任务负责人")
+				return
+			}
+		}
+
 		task := models.Task{
 			ProjectID:    t.ProjectID,
 			PhaseID:      t.PhaseID,
@@ -273,6 +297,15 @@ func (tc *TaskController) Update(c *gin.Context) {
 		updates["task_type"] = req.TaskType
 	}
 	if req.AssigneeID != 0 {
+		var assignee models.User
+		if err := db.Preload("Role").First(&assignee, req.AssigneeID).Error; err != nil {
+			utils.BadRequest(c, "任务负责人不存在")
+			return
+		}
+		if assignee.Role != nil && assignee.Role.Code == config.RoleAdmin {
+			utils.BadRequest(c, "系统管理员不能作为任务负责人")
+			return
+		}
 		updates["assignee_id"] = req.AssigneeID
 	}
 	if req.AssigneeType != "" {

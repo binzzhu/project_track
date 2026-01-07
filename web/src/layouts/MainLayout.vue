@@ -26,7 +26,7 @@
           <el-icon><List /></el-icon>
           <span>任务管理</span>
         </el-menu-item>
-        <el-menu-item index="/my-tasks">
+        <el-menu-item v-if="!userStore.isAdmin" index="/my-tasks">
           <el-icon><User /></el-icon>
           <span>我的任务</span>
         </el-menu-item>

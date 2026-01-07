@@ -30,11 +30,6 @@ func AutoMigrate() {
 		log.Fatal("数据库迁移失败:", err)
 	}
 	log.Println("数据库迁移成功")
-
-	// 确保文档表的 task_id 字段可为空，支持阶段级文档（无任务关联）
-	if err := db.Exec("ALTER TABLE documents MODIFY COLUMN task_id BIGINT UNSIGNED NULL").Error; err != nil {
-		log.Println("调整 documents.task_id 为空失败:", err)
-	}
 }
 
 // InitDefaultData 初始化默认数据
