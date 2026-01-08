@@ -22,9 +22,9 @@
       <el-col :span="19">
         <!-- 搜索栏 -->
         <el-card class="search-card">
-          <el-form :inline="true" class="search-form">
+          <el-form :inline="true">
             <el-form-item label="关键词">
-              <el-input v-model="keyword" placeholder="请输入标题、关键词或描述" clearable @keyup.enter="handleSearch" style="width: 150px;">
+              <el-input v-model="keyword" placeholder="请输入标题、关键词或描述" clearable @keyup.enter="handleSearch" style="width: 250px;">
                 <template #prefix><el-icon><Search /></el-icon></template>
               </el-input>
             </el-form-item>
@@ -33,11 +33,11 @@
                 <el-option v-for="user in users" :key="user.id" :label="user.name" :value="user.id" />
               </el-select>
             </el-form-item>
-            <el-form-item class="search-button-item">
+            <el-form-item>
               <el-button type="primary" @click="handleSearch">搜索</el-button>
               <el-button @click="resetSearch">重置</el-button>
             </el-form-item>
-            <el-form-item v-if="userStore.canManageKnowledge">
+            <el-form-item v-if="userStore.canManageKnowledge" style="float: right;">
               <el-button type="primary" @click="showUploadDialog">
                 <el-icon><Upload /></el-icon> 上传资料
               </el-button>
@@ -328,18 +328,5 @@ onMounted(() => {
 <style scoped>
 .category-card { position: sticky; top: 20px; }
 .search-card { margin-bottom: 20px; }
-.search-form {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: flex-end;
-}
-.search-form .el-form-item {
-  margin-bottom: 0;
-  margin-right: 12px;
-}
-.search-button-item {
-  margin-left: auto;
-  margin-bottom: 0 !important;
-}
 .pagination { margin-top: 20px; justify-content: flex-end; }
 </style>
