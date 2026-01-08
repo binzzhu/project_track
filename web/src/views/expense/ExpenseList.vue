@@ -117,7 +117,7 @@
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="项目编码">
-          <el-select v-model="searchForm.project_code" placeholder="请选择项目" clearable filterable style="width: 220px;">
+          <el-select v-model="searchForm.project_code" placeholder="请选择项目" clearable filterable style="width: 200px;">
             <el-option 
               v-for="project in projects" 
               :key="project.innovation_code" 
@@ -127,13 +127,13 @@
           </el-select>
         </el-form-item>
         <el-form-item label="报账人">
-          <el-input v-model="searchForm.reimbursed_person_name" placeholder="请输入报账人姓名" clearable style="width: 220px;" />
+          <el-input v-model="searchForm.reimbursed_person_name" placeholder="请输入报账人姓名" clearable style="width: 180px;" />
         </el-form-item>
         <el-form-item label="单据编号">
-          <el-input v-model="searchForm.document_no" placeholder="请输入单据编号" clearable style="width: 220px;" />
+          <el-input v-model="searchForm.document_no" placeholder="请输入单据编号" clearable style="width: 180px;" />
         </el-form-item>
         <el-form-item label="业务场景">
-          <el-input v-model="searchForm.business_scene" placeholder="请输入业务场景" clearable style="width: 220px;" />
+          <el-input v-model="searchForm.business_scene" placeholder="请输入业务场景" clearable style="width: 200px;" />
         </el-form-item>
         <el-form-item class="search-button-item">
           <el-button type="primary" @click="handleSearch">搜索</el-button>

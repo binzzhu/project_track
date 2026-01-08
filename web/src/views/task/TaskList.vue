@@ -3,7 +3,7 @@
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm">
         <el-form-item label="关键词">
-          <el-input v-model="searchForm.keyword" placeholder="任务名称" clearable @keyup.enter="handleSearch" />
+          <el-input v-model="searchForm.keyword" placeholder="任务名称" clearable @keyup.enter="handleSearch" style="width: 220px;" />
         </el-form-item>
         <el-form-item label="任务负责人">
           <el-select v-model="searchForm.assignee_id" placeholder="请选择负责人" clearable filterable style="width: 150px;">

@@ -24,7 +24,7 @@
         <el-card class="search-card">
           <el-form :inline="true">
             <el-form-item label="关键词">
-              <el-input v-model="keyword" placeholder="请输入标题、关键词或描述" clearable @keyup.enter="handleSearch" style="width: 250px;">
+              <el-input v-model="keyword" placeholder="请输入标题、关键词或描述" clearable @keyup.enter="handleSearch" style="width: 220px;">
                 <template #prefix><el-icon><Search /></el-icon></template>
               </el-input>
             </el-form-item>

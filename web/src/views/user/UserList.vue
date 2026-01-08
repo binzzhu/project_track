@@ -3,15 +3,15 @@
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="关键词">
-          <el-input v-model="searchForm.keyword" placeholder="用户名/姓名" clearable @keyup.enter="handleSearch" style="width: 220px;" />
+          <el-input v-model="searchForm.keyword" placeholder="用户名/姓名" clearable @keyup.enter="handleSearch" style="width: 200px;" />
         </el-form-item>
         <el-form-item label="角色">
-          <el-select v-model="searchForm.role_id" placeholder="全部" clearable style="width: 220px;">
+          <el-select v-model="searchForm.role_id" placeholder="全部" clearable style="width: 150px;">
             <el-option v-for="role in roles" :key="role.id" :label="role.name" :value="role.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 220px;">
+          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 140px;">
             <el-option label="启用" value="1" />
             <el-option label="禁用" value="0" />
           </el-select>
