@@ -1,24 +1,24 @@
 <template>
   <div class="log-list">
     <el-card class="search-card">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+      <el-form :inline="true" :model="searchForm" class="search-form" label-width="70px">
         <el-form-item label="操作类型">
-          <el-select v-model="searchForm.action" placeholder="全部" clearable style="width: 150px;">
+          <el-select v-model="searchForm.action" placeholder="全部" clearable style="width: 130px;">
             <el-option v-for="action in actions" :key="action.value" :label="action.label" :value="action.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="模块">
-          <el-select v-model="searchForm.module" placeholder="全部" clearable style="width: 150px;">
+          <el-select v-model="searchForm.module" placeholder="全部" clearable style="width: 130px;">
             <el-option v-for="mod in modules" :key="mod.value" :label="mod.label" :value="mod.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="操作人">
-          <el-select v-model="searchForm.user_id" placeholder="全部" clearable filterable style="width: 170px;">
+          <el-select v-model="searchForm.user_id" placeholder="全部" clearable filterable style="width: 150px;">
             <el-option v-for="user in users" :key="user.id" :label="user.name" :value="user.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="关键词">
-          <el-input v-model="searchForm.keyword" placeholder="描述/目标名称" clearable style="width: 200px;" />
+          <el-input v-model="searchForm.keyword" placeholder="描述/目标名称" clearable style="width: 180px;" />
         </el-form-item>
         <el-form-item label="日期范围">
           <el-date-picker
@@ -28,7 +28,7 @@
             start-placeholder="开始日期"
             end-placeholder="结束日期"
             value-format="YYYY-MM-DD"
-            style="width: 260px;"
+            style="width: 240px;"
           />
         </el-form-item>
         <el-form-item class="search-button-item">
