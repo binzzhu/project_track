@@ -1,24 +1,24 @@
 <template>
   <div class="task-list">
     <el-card class="search-card">
-      <el-form :inline="true" :model="searchForm">
+      <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="关键词">
-          <el-input v-model="searchForm.keyword" placeholder="任务名称" clearable @keyup.enter="handleSearch" />
+          <el-input v-model="searchForm.keyword" placeholder="任务名称" clearable @keyup.enter="handleSearch" style="width: 200px;" />
         </el-form-item>
         <el-form-item label="任务负责人">
-          <el-select v-model="searchForm.assignee_id" placeholder="请选择负责人" clearable filterable style="width: 150px;">
+          <el-select v-model="searchForm.assignee_id" placeholder="请选择负责人" clearable filterable style="width: 200px;">
             <el-option v-for="user in users" :key="user.id" :label="user.name" :value="user.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 120px;">
+          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 200px;">
             <el-option label="未开始" value="not_started" />
             <el-option label="进行中" value="in_progress" />
             <el-option label="已完成" value="completed" />
             <el-option label="被驳回" value="rejected" />
           </el-select>
         </el-form-item>
-        <el-form-item>
+        <el-form-item class="search-button-item">
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="resetSearch">重置</el-button>
         </el-form-item>
@@ -219,6 +219,19 @@ onMounted(() => {
 
 <style scoped>
 .search-card { margin-bottom: 20px; }
+.search-form {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+}
+.search-form .el-form-item {
+  margin-bottom: 0;
+  margin-right: 12px;
+}
+.search-button-item {
+  margin-left: auto;
+  margin-bottom: 0 !important;
+}
 .pagination { margin-top: 20px; justify-content: flex-end; }
 .overdue { color: #F56C6C; }
 </style>
