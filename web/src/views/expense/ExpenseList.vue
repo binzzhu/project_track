@@ -241,66 +241,99 @@
     </el-card>
 
     <!-- 创建/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑费用记录' : '添加费用记录'" width="600px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑费用记录' : '添加费用记录'" width="700px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
-        <el-form-item label="关联项目" prop="project_id">
-          <el-select v-model="form.project_id" placeholder="请选择项目（可选）" filterable clearable style="width: 100%;" @change="handleProjectSelect">
-            <el-option 
-              v-for="project in projects" 
-              :key="project.id" 
-              :label="`${project.innovation_code} - ${project.name}`" 
-              :value="project.id" 
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="单据编号" prop="document_no">
-          <el-input v-model="form.document_no" :disabled="isEdit" placeholder="请输入单据编号" />
-        </el-form-item>
-        <el-form-item label="费用类型" prop="expense_type">
-          <el-select v-model="form.expense_type" placeholder="请选择费用类型" clearable style="width: 100%;">
-            <el-option label="人工费用" value="labor" />
-            <el-option label="直接投入费用" value="direct" />
-            <el-option label="委托研发费用" value="outsourcing" />
-            <el-option label="其他费用" value="other" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="报账人">
-          <el-input :model-value="userStore.user.name || userStore.user.username" disabled />
-        </el-form-item>
-        <el-form-item label="报账金额" prop="reimbursement_amount">
-          <el-input-number v-model="form.reimbursement_amount" :min="0" :precision="2" :controls="false" placeholder="请输入金额" style="width: 100%;" />
-        </el-form-item>
-        <el-form-item label="支付金额" prop="payment_amount">
-          <el-input-number v-model="form.payment_amount" :min="0" :precision="2" :controls="false" placeholder="请输入支付金额" style="width: 100%;" />
-        </el-form-item>
-        <el-form-item label="发票不含税金额" prop="invoice_amount_excl_tax">
-          <el-input-number v-model="form.invoice_amount_excl_tax" :min="0" :precision="2" :controls="false" placeholder="请输入不含税金额" style="width: 100%;" />
-        </el-form-item>
-        <el-form-item label="发票含税金额" prop="invoice_amount_incl_tax">
-          <el-input-number v-model="form.invoice_amount_incl_tax" :min="0" :precision="2" :controls="false" placeholder="请输入含税金额" style="width: 100%;" />
-        </el-form-item>
-        <el-form-item label="分摊金额" prop="allocation_amount">
-          <el-input-number v-model="form.allocation_amount" :min="0" :precision="2" :controls="false" placeholder="请输入分摊金额" style="width: 100%;" />
-        </el-form-item>
-        <el-form-item label="摘要" prop="summary">
-          <el-input v-model="form.summary" type="textarea" :rows="3" placeholder="请输入费用摘要" />
-        </el-form-item>
-        <el-form-item label="业务场景" prop="business_scene">
-          <el-input v-model="form.business_scene" placeholder="业务场景" />
-        </el-form-item>
-        <el-form-item label="单据状态" prop="document_status">
-          <el-input v-model="form.document_status" placeholder="单据状态" />
-        </el-form-item>
-        <el-form-item label="单位名称" prop="unit_name">
-          <el-select v-model="form.unit_name" placeholder="请选择单位名称" clearable style="width: 100%;">
-            <el-option label="中国铁塔股份有限公司四川省分公司" value="中国铁塔股份有限公司四川省分公司" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="部门名称" prop="department_name">
-          <el-select v-model="form.department_name" placeholder="请选择部门名称" clearable style="width: 100%;">
-            <el-option label="成都科技创新中心" value="成都科技创新中心" />
-          </el-select>
-        </el-form-item>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="关联项目" prop="project_id">
+              <el-select v-model="form.project_id" placeholder="请选择项目（可选）" filterable clearable style="width: 100%;" @change="handleProjectSelect">
+                <el-option 
+                  v-for="project in projects" 
+                  :key="project.id" 
+                  :label="`${project.innovation_code} - ${project.name}`" 
+                  :value="project.id" 
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="单据编号" prop="document_no">
+              <el-input v-model="form.document_no" :disabled="isEdit" placeholder="请输入单据编号" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="费用类型" prop="expense_type">
+              <el-select v-model="form.expense_type" placeholder="请选择费用类型" clearable style="width: 100%;">
+                <el-option label="人工费用" value="labor" />
+                <el-option label="直接投入费用" value="direct" />
+                <el-option label="委托研发费用" value="outsourcing" />
+                <el-option label="其他费用" value="other" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="报账人">
+              <el-input :model-value="userStore.user.name || userStore.user.username" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="报账金额" prop="reimbursement_amount">
+              <el-input-number v-model="form.reimbursement_amount" :min="0" :precision="2" :controls="false" placeholder="请输入金额" style="width: 100%;" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="支付金额" prop="payment_amount">
+              <el-input-number v-model="form.payment_amount" :min="0" :precision="2" :controls="false" placeholder="请输入支付金额" style="width: 100%;" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="发票不含税金额" prop="invoice_amount_excl_tax">
+              <el-input-number v-model="form.invoice_amount_excl_tax" :min="0" :precision="2" :controls="false" placeholder="请输入不含税金额" style="width: 100%;" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="发票含税金额" prop="invoice_amount_incl_tax">
+              <el-input-number v-model="form.invoice_amount_incl_tax" :min="0" :precision="2" :controls="false" placeholder="请输入含税金额" style="width: 100%;" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="分摊金额" prop="allocation_amount">
+              <el-input-number v-model="form.allocation_amount" :min="0" :precision="2" :controls="false" placeholder="请输入分摊金额" style="width: 100%;" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="业务场景" prop="business_scene">
+              <el-input v-model="form.business_scene" placeholder="业务场景" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="单据状态" prop="document_status">
+              <el-select v-model="form.document_status" placeholder="请选择单据状态" clearable style="width: 100%;">
+                <el-option label="完成" value="完成" />
+                <el-option label="未完成" value="未完成" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="单位名称" prop="unit_name">
+              <el-select v-model="form.unit_name" placeholder="请选择单位名称" clearable style="width: 100%;">
+                <el-option label="中国铁塔股份有限公司四川省分公司" value="中国铁塔股份有限公司四川省分公司" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="部门名称" prop="department_name">
+              <el-select v-model="form.department_name" placeholder="请选择部门名称" clearable style="width: 100%;">
+                <el-option label="成都科技创新中心" value="成都科技创新中心" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="摘要" prop="summary">
+              <el-input v-model="form.summary" type="textarea" :rows="3" placeholder="请输入费用摘要" />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
