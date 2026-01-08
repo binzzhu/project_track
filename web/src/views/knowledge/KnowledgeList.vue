@@ -24,12 +24,12 @@
         <el-card class="search-card">
           <el-form :inline="true">
             <el-form-item label="关键词">
-              <el-input v-model="keyword" placeholder="请输入标题、关键词或描述" clearable @keyup.enter="handleSearch" style="width: 220px;">
+              <el-input v-model="keyword" placeholder="请输入标题、关键词或描述" clearable @keyup.enter="handleSearch" style="width: 260px;">
                 <template #prefix><el-icon><Search /></el-icon></template>
               </el-input>
             </el-form-item>
             <el-form-item label="上传人">
-              <el-select v-model="uploadedBy" placeholder="请选择上传人" clearable @change="handleSearch" style="width: 150px;">
+              <el-select v-model="uploadedBy" placeholder="请选择上传人" clearable @change="handleSearch" style="width: 160px;">
                 <el-option v-for="user in users" :key="user.id" :label="user.name" :value="user.id" />
               </el-select>
             </el-form-item>
