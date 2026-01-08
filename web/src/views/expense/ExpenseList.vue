@@ -185,27 +185,18 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="unit_name" label="单位名称" width="200" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="document_no" label="单据编号" width="180" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="business_scene" label="业务场景" width="120" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="summary" label="摘要" min-width="200" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="department_name" label="部门名称" width="120" header-align="center" align="center" />
-        <el-table-column prop="reimbursed_person_name" label="报账人" width="100" header-align="center" align="center" />
-        <el-table-column prop="document_status" label="单据状态" width="100" header-align="center" align="center">
+        <el-table-column label="报账人" width="120" header-align="center" align="center">
           <template #default="{ row }">
-            <el-tag v-if="row.document_status" size="small">{{ row.document_status }}</el-tag>
-            <span v-else>-</span>
+            {{ row.reimbursed_user?.name || row.reimbursed_person_name || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="frozen_status" label="冻结状态" width="100" header-align="center" align="center" />
+        <el-table-column prop="document_no" label="单据编号" width="180" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="summary" label="摘要" min-width="200" header-align="center" align="center" show-overflow-tooltip />
         <el-table-column prop="reimbursement_amount" label="报账金额" width="110" header-align="center" align="center">
           <template #default="{ row }">{{ row.reimbursement_amount ? row.reimbursement_amount.toFixed(2) : '0.00' }}</template>
         </el-table-column>
         <el-table-column prop="payment_amount" label="支付金额" width="110" header-align="center" align="center">
           <template #default="{ row }">{{ row.payment_amount ? row.payment_amount.toFixed(2) : '0.00' }}</template>
-        </el-table-column>
-        <el-table-column prop="write_off_amount" label="核销金额" width="110" header-align="center" align="center">
-          <template #default="{ row }">{{ row.write_off_amount ? row.write_off_amount.toFixed(2) : '0.00' }}</template>
         </el-table-column>
         <el-table-column prop="invoice_amount_excl_tax" label="发票不含税金额" width="140" header-align="center" align="center">
           <template #default="{ row }">{{ row.invoice_amount_excl_tax ? row.invoice_amount_excl_tax.toFixed(2) : '0.00' }}</template>
@@ -213,13 +204,18 @@
         <el-table-column prop="invoice_amount_incl_tax" label="发票含税金额" width="140" header-align="center" align="center">
           <template #default="{ row }">{{ row.invoice_amount_incl_tax ? row.invoice_amount_incl_tax.toFixed(2) : '0.00' }}</template>
         </el-table-column>
-        <el-table-column prop="current_process" label="当前处理环节" width="120" header-align="center" align="center" />
-        <el-table-column prop="current_processor" label="当前处理人" width="120" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="physical_status" label="实物状态" width="100" header-align="center" align="center" />
-        <el-table-column prop="physical_location" label="实物位置" width="120" header-align="center" align="center" />
-        <el-table-column prop="document_type_name" label="单据类型名称" width="140" header-align="center" align="center" show-overflow-tooltip />
-        <el-table-column prop="supplier_code" label="供应商编号" width="160" header-align="center" align="center" />
-        <el-table-column prop="supplier_name" label="供应商名称" width="180" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="allocation_amount" label="分摊金额" width="120" header-align="center" align="center">
+          <template #default="{ row }">{{ row.allocation_amount ? row.allocation_amount.toFixed(2) : '0.00' }}</template>
+        </el-table-column>
+        <el-table-column prop="business_scene" label="业务场景" width="140" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="document_status" label="单据状态" width="120" header-align="center" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="row.document_status" size="small">{{ row.document_status }}</el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="unit_name" label="单位名称" width="220" header-align="center" align="center" show-overflow-tooltip />
+        <el-table-column prop="department_name" label="部门名称" width="140" header-align="center" align="center" />
         <el-table-column label="操作" width="150" header-align="center" align="center" fixed="right">
           <template #default="{ row }">
             <el-button v-if="canEdit(row)" type="primary" link @click="showEditDialog(row)">编辑</el-button>
@@ -258,7 +254,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="单据编号" prop="document_no">
-          <el-input v-model="form.document_no" placeholder="请输入单据编号" />
+          <el-input v-model="form.document_no" :disabled="isEdit" placeholder="请输入单据编号" />
         </el-form-item>
         <el-form-item label="费用类型" prop="expense_type">
           <el-select v-model="form.expense_type" placeholder="请选择费用类型" clearable style="width: 100%;">
@@ -268,8 +264,14 @@
             <el-option label="其他费用" value="other" />
           </el-select>
         </el-form-item>
+        <el-form-item label="报账人">
+          <el-input :model-value="userStore.user.name || userStore.user.username" disabled />
+        </el-form-item>
         <el-form-item label="报账金额" prop="reimbursement_amount">
           <el-input-number v-model="form.reimbursement_amount" :min="0" :precision="2" :controls="false" placeholder="请输入金额" style="width: 100%;" />
+        </el-form-item>
+        <el-form-item label="支付金额" prop="payment_amount">
+          <el-input-number v-model="form.payment_amount" :min="0" :precision="2" :controls="false" placeholder="请输入支付金额" style="width: 100%;" />
         </el-form-item>
         <el-form-item label="发票不含税金额" prop="invoice_amount_excl_tax">
           <el-input-number v-model="form.invoice_amount_excl_tax" :min="0" :precision="2" :controls="false" placeholder="请输入不含税金额" style="width: 100%;" />
@@ -277,20 +279,27 @@
         <el-form-item label="发票含税金额" prop="invoice_amount_incl_tax">
           <el-input-number v-model="form.invoice_amount_incl_tax" :min="0" :precision="2" :controls="false" placeholder="请输入含税金额" style="width: 100%;" />
         </el-form-item>
+        <el-form-item label="分摊金额" prop="allocation_amount">
+          <el-input-number v-model="form.allocation_amount" :min="0" :precision="2" :controls="false" placeholder="请输入分摊金额" style="width: 100%;" />
+        </el-form-item>
         <el-form-item label="摘要" prop="summary">
           <el-input v-model="form.summary" type="textarea" :rows="3" placeholder="请输入费用摘要" />
         </el-form-item>
-        <el-form-item label="业务场景">
+        <el-form-item label="业务场景" prop="business_scene">
           <el-input v-model="form.business_scene" placeholder="业务场景" />
         </el-form-item>
-        <el-form-item label="部门名称">
-          <el-input v-model="form.department_name" placeholder="部门名称" />
-        </el-form-item>
-        <el-form-item label="单据状态">
+        <el-form-item label="单据状态" prop="document_status">
           <el-input v-model="form.document_status" placeholder="单据状态" />
         </el-form-item>
-        <el-form-item label="供应商名称">
-          <el-input v-model="form.supplier_name" placeholder="供应商名称" />
+        <el-form-item label="单位名称" prop="unit_name">
+          <el-select v-model="form.unit_name" placeholder="请选择单位名称" clearable style="width: 100%;">
+            <el-option label="中国铁塔股份有限公司四川省分公司" value="中国铁塔股份有限公司四川省分公司" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="部门名称" prop="department_name">
+          <el-select v-model="form.department_name" placeholder="请选择部门名称" clearable style="width: 100%;">
+            <el-option label="成都科技创新中心" value="成都科技创新中心" />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -365,21 +374,26 @@ const form = reactive({
   document_no: '', 
   expense_type: '',
   reimbursement_amount: 0, 
+  payment_amount: 0,
   invoice_amount_excl_tax: 0,
   invoice_amount_incl_tax: 0,
+  allocation_amount: 0,
   summary: '', 
   business_scene: '',
-  department_name: '',
   document_status: '',
-  supplier_name: ''
+  unit_name: '',
+  department_name: ''
 })
 
 const rules = {
   document_no: [{ required: true, message: '请输入单据编号', trigger: 'blur' }],
+  summary: [{ required: true, message: '请输入费用摘要', trigger: 'blur' }],
   reimbursement_amount: [{ required: true, message: '请输入报账金额', trigger: 'blur' }],
+  payment_amount: [{ required: true, message: '请输入支付金额', trigger: 'blur' }],
   invoice_amount_excl_tax: [{ required: true, message: '请输入发票不含税金额', trigger: 'blur' }],
   invoice_amount_incl_tax: [{ required: true, message: '请输入发票含税金额', trigger: 'blur' }],
-  summary: [{ required: true, message: '请输入费用摘要', trigger: 'blur' }]
+  allocation_amount: [{ required: true, message: '请输入分摊金额', trigger: 'blur' }],
+  business_scene: [{ required: true, message: '请输入业务场景', trigger: 'blur' }]
 }
 
 const canEdit = (row) => {
@@ -464,12 +478,15 @@ const showCreateDialog = () => {
     document_no: '', 
     expense_type: '',
     reimbursement_amount: 0, 
+    payment_amount: 0,
     invoice_amount_excl_tax: 0,
     invoice_amount_incl_tax: 0,
+    allocation_amount: 0,
     summary: '', 
     business_scene: '',
-    department_name: '',
     document_status: '',
+    unit_name: '',
+    department_name: '',
     supplier_name: ''
   })
   dialogVisible.value = true
@@ -484,12 +501,15 @@ const showEditDialog = (row) => {
     document_no: row.document_no,
     expense_type: row.expense_type,
     reimbursement_amount: row.reimbursement_amount,
+    payment_amount: row.payment_amount,
     invoice_amount_excl_tax: row.invoice_amount_excl_tax || 0,
     invoice_amount_incl_tax: row.invoice_amount_incl_tax || 0,
+    allocation_amount: row.allocation_amount || 0,
     summary: row.summary,
     business_scene: row.business_scene,
-    department_name: row.department_name,
     document_status: row.document_status,
+    unit_name: row.unit_name,
+    department_name: row.department_name,
     supplier_name: row.supplier_name
   })
   dialogVisible.value = true

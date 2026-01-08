@@ -97,20 +97,20 @@ func (ec *ExpenseController) Get(c *gin.Context) {
 	utils.Success(c, expense)
 }
 
-// CreateExpenseRequest 创建费用记录请求
 type CreateExpenseRequest struct {
 	ProjectID            *uint   `json:"project_id"`
 	ProjectCode          string  `json:"project_code"`
 	DocumentNo           string  `json:"document_no" binding:"required"`
 	ExpenseType          string  `json:"expense_type"`
 	ReimbursementAmount  float64 `json:"reimbursement_amount" binding:"required"`
-	InvoiceAmountExclTax float64 `json:"invoice_amount_excl_tax"`
-	InvoiceAmountInclTax float64 `json:"invoice_amount_incl_tax"`
-	Summary              string  `json:"summary"`
-	BusinessScene        string  `json:"business_scene"`
+	PaymentAmount        float64 `json:"payment_amount" binding:"required"`
+	InvoiceAmountExclTax float64 `json:"invoice_amount_excl_tax" binding:"required"`
+	InvoiceAmountInclTax float64 `json:"invoice_amount_incl_tax" binding:"required"`
+	AllocationAmount     float64 `json:"allocation_amount" binding:"required"`
+	Summary              string  `json:"summary" binding:"required"`
+	BusinessScene        string  `json:"business_scene" binding:"required"`
 	DepartmentName       string  `json:"department_name"`
 	DocumentStatus       string  `json:"document_status"`
-	SupplierName         string  `json:"supplier_name"`
 }
 
 // Create 创建费用记录
@@ -130,13 +130,14 @@ func (ec *ExpenseController) Create(c *gin.Context) {
 		DocumentNo:           req.DocumentNo,
 		ExpenseType:          req.ExpenseType,
 		ReimbursementAmount:  req.ReimbursementAmount,
+		PaymentAmount:        req.PaymentAmount,
 		InvoiceAmountExclTax: req.InvoiceAmountExclTax,
 		InvoiceAmountInclTax: req.InvoiceAmountInclTax,
+		AllocationAmount:     req.AllocationAmount,
 		Summary:              req.Summary,
 		BusinessScene:        req.BusinessScene,
 		DepartmentName:       req.DepartmentName,
 		DocumentStatus:       req.DocumentStatus,
-		SupplierName:         req.SupplierName,
 		ReimbursedBy:         userID.(uint),
 		CreatedBy:            userID.(uint),
 		IsClassified:         req.ProjectID != nil,
@@ -180,16 +181,16 @@ func (ec *ExpenseController) Update(c *gin.Context) {
 
 	expense.ProjectID = req.ProjectID
 	expense.ProjectCode = req.ProjectCode
-	expense.DocumentNo = req.DocumentNo
 	expense.ExpenseType = req.ExpenseType
 	expense.ReimbursementAmount = req.ReimbursementAmount
+	expense.PaymentAmount = req.PaymentAmount
 	expense.InvoiceAmountExclTax = req.InvoiceAmountExclTax
 	expense.InvoiceAmountInclTax = req.InvoiceAmountInclTax
+	expense.AllocationAmount = req.AllocationAmount
 	expense.Summary = req.Summary
 	expense.BusinessScene = req.BusinessScene
 	expense.DepartmentName = req.DepartmentName
 	expense.DocumentStatus = req.DocumentStatus
-	expense.SupplierName = req.SupplierName
 	expense.IsClassified = req.ProjectID != nil
 
 	db.Save(&expense)
@@ -267,7 +268,6 @@ func (ec *ExpenseController) GetProjectComparison(c *gin.Context) {
 	var projects []models.Project
 	db.Select("id, name, innovation_code, labor_cost, direct_cost, outsourcing_cost, other_cost").Find(&projects)
 
-	// 获取每个项目的实际费用（按费用类型分组）
 	type ExpenseStat struct {
 		ProjectID    uint    `json:"project_id"`
 		ExpenseType  string  `json:"expense_type"`
@@ -276,7 +276,7 @@ func (ec *ExpenseController) GetProjectComparison(c *gin.Context) {
 	}
 	var expenseStats []ExpenseStat
 	db.Model(&models.Expense{}).
-		Select("project_id, expense_type, SUM(invoice_amount_incl_tax) as total_incl_tax, SUM(invoice_amount_excl_tax) as total_excl_tax").
+		Select("project_id, expense_type, SUM(reimbursement_amount) as total_incl_tax, SUM(allocation_amount) as total_excl_tax").
 		Where("project_id IS NOT NULL AND is_classified = ?", true).
 		Group("project_id, expense_type").
 		Scan(&expenseStats)
@@ -350,7 +350,6 @@ func (ec *ExpenseController) GetProjectComparison(c *gin.Context) {
 func (ec *ExpenseController) GetNonProjectExpenseStats(c *gin.Context) {
 	db := config.GetDB()
 
-	// 统计非研发项目费用（project_id为NULL且expense_type为NULL或为空）
 	type BusinessSceneStat struct {
 		BusinessScene string  `json:"business_scene"`
 		TotalInclTax  float64 `json:"total_incl_tax"`
@@ -359,7 +358,7 @@ func (ec *ExpenseController) GetNonProjectExpenseStats(c *gin.Context) {
 
 	var stats []BusinessSceneStat
 	db.Model(&models.Expense{}).
-		Select("business_scene, SUM(invoice_amount_incl_tax) as total_incl_tax, SUM(invoice_amount_excl_tax) as total_excl_tax").
+		Select("business_scene, SUM(reimbursement_amount) as total_incl_tax, SUM(allocation_amount) as total_excl_tax").
 		Where("project_id IS NULL AND (expense_type IS NULL OR expense_type = '')").
 		Group("business_scene").
 		Order("total_incl_tax DESC").

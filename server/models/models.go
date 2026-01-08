@@ -263,6 +263,7 @@ type Expense struct {
 	WriteOffAmount       float64 `gorm:"default:0" json:"write_off_amount"`        // 核销金额
 	InvoiceAmountExclTax float64 `gorm:"default:0" json:"invoice_amount_excl_tax"` // 发票不含税金额
 	InvoiceAmountInclTax float64 `gorm:"default:0" json:"invoice_amount_incl_tax"` // 发票含税金额
+	AllocationAmount     float64 `gorm:"default:0" json:"allocation_amount"`       // 分摊金额
 
 	// 流程信息
 	CurrentProcess   string `gorm:"size:100" json:"current_process"`   // 当前处理环节
