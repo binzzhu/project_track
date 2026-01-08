@@ -4,22 +4,22 @@
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="关键词">
-          <el-input v-model="searchForm.keyword" placeholder="项目名称/编号" clearable @keyup.enter="handleSearch" style="width: 170px;" />
+          <el-input v-model="searchForm.keyword" placeholder="项目名称/编号" clearable @keyup.enter="handleSearch" style="width: 150px;" />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 170px;">
+          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 150px;">
             <el-option label="未开始" value="not_started" />
             <el-option label="进行中" value="in_progress" />
             <el-option label="已完成" value="completed" />
           </el-select>
         </el-form-item>
         <el-form-item label="阶段">
-          <el-select v-model="searchForm.phase" placeholder="全部" clearable style="width: 170px;">
+          <el-select v-model="searchForm.phase" placeholder="全部" clearable style="width: 150px;">
             <el-option v-for="(label, key) in phaseLabels" :key="key" :label="label" :value="key" />
           </el-select>
         </el-form-item>
         <el-form-item label="项目负责人">
-          <el-select v-model="searchForm.manager_id" placeholder="请选择项目负责人" clearable filterable style="width: 170px;">
+          <el-select v-model="searchForm.manager_id" placeholder="请选择项目负责人" clearable filterable style="width: 150px;">
             <el-option v-for="user in users" :key="user.id" :label="user.name" :value="user.id" />
           </el-select>
         </el-form-item>
