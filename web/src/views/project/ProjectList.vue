@@ -2,23 +2,28 @@
   <div class="project-list">
     <!-- 搜索栏 -->
     <el-card class="search-card">
-      <el-form :inline="true" :model="searchForm">
+      <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="关键词">
-          <el-input v-model="searchForm.keyword" placeholder="项目名称/编号" clearable @keyup.enter="handleSearch" />
+          <el-input v-model="searchForm.keyword" placeholder="项目名称/编号" clearable @keyup.enter="handleSearch" style="width: 220px;" />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 120px;">
+          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 220px;">
             <el-option label="未开始" value="not_started" />
             <el-option label="进行中" value="in_progress" />
             <el-option label="已完成" value="completed" />
           </el-select>
         </el-form-item>
         <el-form-item label="阶段">
-          <el-select v-model="searchForm.phase" placeholder="全部" clearable style="width: 150px;">
+          <el-select v-model="searchForm.phase" placeholder="全部" clearable style="width: 220px;">
             <el-option v-for="(label, key) in phaseLabels" :key="key" :label="label" :value="key" />
           </el-select>
         </el-form-item>
-        <el-form-item>
+        <el-form-item label="项目负责人">
+          <el-select v-model="searchForm.manager_id" placeholder="请选择项目负责人" clearable filterable style="width: 220px;">
+            <el-option v-for="user in users" :key="user.id" :label="user.name" :value="user.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item class="search-button-item">
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="resetSearch">重置</el-button>
         </el-form-item>
@@ -201,7 +206,8 @@ const formRef = ref(null)
 const searchForm = reactive({
   keyword: '',
   status: '',
-  phase: ''
+  phase: '',
+  manager_id: ''
 })
 
 const pagination = reactive({
@@ -279,7 +285,8 @@ const fetchProjects = async () => {
       page_size: pagination.pageSize,
       keyword: searchForm.keyword,
       status: searchForm.status,
-      phase: searchForm.phase
+      phase: searchForm.phase,
+      manager_id: searchForm.manager_id
     })
     projects.value = res.data.list || []
     pagination.total = res.data.total || 0
@@ -308,6 +315,7 @@ const resetSearch = () => {
   searchForm.keyword = ''
   searchForm.status = ''
   searchForm.phase = ''
+  searchForm.manager_id = ''
   handleSearch()
 }
 
@@ -385,6 +393,18 @@ onMounted(() => {
 <style scoped>
 .search-card {
   margin-bottom: 20px;
+}
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.search-form .el-form-item {
+  margin-bottom: 0;
+}
+.search-button-item {
+  margin-left: auto;
+  margin-bottom: 0 !important;
 }
 .action-bar {
   margin-bottom: 15px;

@@ -117,7 +117,7 @@
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="项目编码">
-          <el-select v-model="searchForm.project_code" placeholder="请选择项目" clearable filterable style="width: 280px;">
+          <el-select v-model="searchForm.project_code" placeholder="请选择项目" clearable filterable style="width: 220px;">
             <el-option 
               v-for="project in projects" 
               :key="project.innovation_code" 
@@ -127,22 +127,13 @@
           </el-select>
         </el-form-item>
         <el-form-item label="报账人">
-          <el-input v-model="searchForm.reimbursed_person_name" placeholder="请输入报账人姓名" clearable style="width: 150px;" />
-        </el-form-item>
-        <el-form-item label="是否项目开支">
-          <el-select v-model="searchForm.is_project_expense" placeholder="全部" clearable style="width: 130px;">
-            <el-option label="是" value="是" />
-            <el-option label="否" value="否" />
-          </el-select>
+          <el-input v-model="searchForm.reimbursed_person_name" placeholder="请输入报账人姓名" clearable style="width: 220px;" />
         </el-form-item>
         <el-form-item label="单据编号">
-          <el-input v-model="searchForm.document_no" placeholder="请输入单据编号" clearable style="width: 180px;" />
+          <el-input v-model="searchForm.document_no" placeholder="请输入单据编号" clearable style="width: 220px;" />
         </el-form-item>
-        <el-form-item label="归类状态">
-          <el-select v-model="searchForm.is_classified" placeholder="全部" clearable style="width: 120px;">
-            <el-option label="已归类" :value="true" />
-            <el-option label="未归类" :value="false" />
-          </el-select>
+        <el-form-item label="业务场景">
+          <el-input v-model="searchForm.business_scene" placeholder="请输入业务场景" clearable style="width: 220px;" />
         </el-form-item>
         <el-form-item class="search-button-item">
           <el-button type="primary" @click="handleSearch">搜索</el-button>
@@ -393,12 +384,11 @@ const formRef = ref(null)
 const uploadRef = ref(null)
 const selectedFile = ref(null)
 
-const searchForm = reactive({ 
-  project_code: '', 
-  reimbursed_person_name: '', 
-  is_project_expense: '', 
-  document_no: '', 
-  is_classified: null 
+const searchForm = reactive({
+  project_code: '',
+  reimbursed_person_name: '',
+  document_no: '',
+  business_scene: ''
 })
 const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
 const form = reactive({ 
@@ -492,15 +482,14 @@ const fetchExpenses = async () => {
 }
 
 const handleSearch = () => { pagination.page = 1; fetchExpenses() }
-const resetSearch = () => { 
-  Object.assign(searchForm, { 
-    project_code: '', 
-    reimbursed_person_name: '', 
-    is_project_expense: '', 
-    document_no: '', 
-    is_classified: null 
-  }); 
-  handleSearch() 
+const resetSearch = () => {
+  Object.assign(searchForm, {
+    project_code: '',
+    reimbursed_person_name: '',
+    document_no: '',
+    business_scene: ''
+  })
+  handleSearch()
 }
 
 const showCreateDialog = () => {

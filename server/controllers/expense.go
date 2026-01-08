@@ -25,9 +25,8 @@ func (ec *ExpenseController) List(c *gin.Context) {
 	projectID := c.Query("project_id")
 	projectCode := c.Query("project_code")
 	reimbursedPersonName := c.Query("reimbursed_person_name")
-	isProjectExpense := c.Query("is_project_expense")
 	documentNo := c.Query("document_no")
-	isClassified := c.Query("is_classified")
+	businessScene := c.Query("business_scene")
 	expenseType := c.Query("expense_type")
 	reimbursedBy := c.Query("reimbursed_by")
 
@@ -48,18 +47,11 @@ func (ec *ExpenseController) List(c *gin.Context) {
 	if reimbursedPersonName != "" {
 		query = query.Where("reimbursed_person_name LIKE ?", "%"+reimbursedPersonName+"%")
 	}
-	if isProjectExpense != "" {
-		query = query.Where("is_project_expense = ?", isProjectExpense)
-	}
 	if documentNo != "" {
 		query = query.Where("document_no LIKE ?", "%"+documentNo+"%")
 	}
-	if isClassified != "" {
-		if isClassified == "true" {
-			query = query.Where("is_classified = ?", true)
-		} else if isClassified == "false" {
-			query = query.Where("is_classified = ?", false)
-		}
+	if businessScene != "" {
+		query = query.Where("business_scene LIKE ?", "%"+businessScene+"%")
 	}
 	if expenseType != "" {
 		query = query.Where("expense_type = ?", expenseType)

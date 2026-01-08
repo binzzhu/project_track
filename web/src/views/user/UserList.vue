@@ -1,22 +1,22 @@
 <template>
   <div class="user-list">
     <el-card class="search-card">
-      <el-form :inline="true" :model="searchForm">
+      <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="关键词">
-          <el-input v-model="searchForm.keyword" placeholder="用户名/姓名" clearable @keyup.enter="handleSearch" />
+          <el-input v-model="searchForm.keyword" placeholder="用户名/姓名" clearable @keyup.enter="handleSearch" style="width: 220px;" />
         </el-form-item>
         <el-form-item label="角色">
-          <el-select v-model="searchForm.role_id" placeholder="全部" clearable>
+          <el-select v-model="searchForm.role_id" placeholder="全部" clearable style="width: 220px;">
             <el-option v-for="role in roles" :key="role.id" :label="role.name" :value="role.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="全部" clearable>
+          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 220px;">
             <el-option label="启用" value="1" />
             <el-option label="禁用" value="0" />
           </el-select>
         </el-form-item>
-        <el-form-item>
+        <el-form-item class="search-button-item">
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="resetSearch">重置</el-button>
         </el-form-item>
@@ -244,6 +244,18 @@ onMounted(() => {
 
 <style scoped>
 .search-card { margin-bottom: 20px; }
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.search-form .el-form-item {
+  margin-bottom: 0;
+}
+.search-button-item {
+  margin-left: auto;
+  margin-bottom: 0 !important;
+}
 .action-bar { margin-bottom: 15px; }
 .pagination { margin-top: 20px; justify-content: flex-end; }
 </style>

@@ -1,19 +1,24 @@
 <template>
   <div class="log-list">
     <el-card class="search-card">
-      <el-form :inline="true" :model="searchForm">
+      <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="操作类型">
-          <el-select v-model="searchForm.action" placeholder="全部" clearable>
+          <el-select v-model="searchForm.action" placeholder="全部" clearable style="width: 220px;">
             <el-option v-for="action in actions" :key="action.value" :label="action.label" :value="action.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="模块">
-          <el-select v-model="searchForm.module" placeholder="全部" clearable>
+          <el-select v-model="searchForm.module" placeholder="全部" clearable style="width: 220px;">
             <el-option v-for="mod in modules" :key="mod.value" :label="mod.label" :value="mod.value" />
           </el-select>
         </el-form-item>
+        <el-form-item label="操作人">
+          <el-select v-model="searchForm.user_id" placeholder="全部" clearable filterable style="width: 220px;">
+            <el-option v-for="user in users" :key="user.id" :label="user.name" :value="user.id" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="关键词">
-          <el-input v-model="searchForm.keyword" placeholder="描述/目标名称" clearable />
+          <el-input v-model="searchForm.keyword" placeholder="描述/目标名称" clearable style="width: 220px;" />
         </el-form-item>
         <el-form-item label="日期范围">
           <el-date-picker
@@ -23,9 +28,10 @@
             start-placeholder="开始日期"
             end-placeholder="结束日期"
             value-format="YYYY-MM-DD"
+            style="width: 260px;"
           />
         </el-form-item>
-        <el-form-item>
+        <el-form-item class="search-button-item">
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="resetSearch">重置</el-button>
         </el-form-item>
@@ -77,14 +83,16 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { getLogs, getLogActions, getLogModules } from '@/api/log'
+import { getUsers } from '@/api/user'
 
 const loading = ref(false)
 const logs = ref([])
 const actions = ref([])
 const modules = ref([])
+const users = ref([])
 const dateRange = ref([])
 
-const searchForm = reactive({ action: '', module: '', keyword: '' })
+const searchForm = reactive({ action: '', module: '', user_id: '', keyword: '' })
 const pagination = reactive({ page: 1, pageSize: 20, total: 0 })
 
 const actionLabels = { login: '登录', logout: '退出', create: '创建', update: '更新', delete: '删除', upload: '上传', download: '下载', review: '审核', archive: '归档', add_member: '添加成员', remove_member: '移除成员', update_phase: '更新阶段', update_status: '更新状态', change_password: '修改密码', reset_password: '重置密码', new_version: '上传新版本' }
@@ -100,6 +108,7 @@ const fetchLogs = async () => {
       page_size: pagination.pageSize,
       action: searchForm.action,
       module: searchForm.module,
+      user_id: searchForm.user_id,
       keyword: searchForm.keyword
     }
     if (dateRange.value && dateRange.value.length === 2) {
@@ -117,15 +126,17 @@ const fetchLogs = async () => {
 }
 
 const fetchOptions = async () => {
-  const [actionsRes, modulesRes] = await Promise.all([getLogActions(), getLogModules()])
+  const [actionsRes, modulesRes, usersRes] = await Promise.all([getLogActions(), getLogModules(), getUsers({ page: 1, page_size: 100 })])
   actions.value = actionsRes.data || []
   modules.value = modulesRes.data || []
+  users.value = usersRes.data?.list || []
 }
 
 const handleSearch = () => { pagination.page = 1; fetchLogs() }
 const resetSearch = () => {
   searchForm.action = ''
   searchForm.module = ''
+  searchForm.user_id = ''
   searchForm.keyword = ''
   dateRange.value = []
   handleSearch()
@@ -139,5 +150,17 @@ onMounted(() => {
 
 <style scoped>
 .search-card { margin-bottom: 20px; }
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.search-form .el-form-item {
+  margin-bottom: 0;
+}
+.search-button-item {
+  margin-left: auto;
+  margin-bottom: 0 !important;
+}
 .pagination { margin-top: 20px; justify-content: flex-end; }
 </style>
