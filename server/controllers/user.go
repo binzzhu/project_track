@@ -14,23 +14,25 @@ type UserController struct{}
 
 // CreateUserRequest 创建用户请求
 type CreateUserRequest struct {
-	Username   string `json:"username" binding:"required"`
-	Password   string `json:"password" binding:"required"`
-	Name       string `json:"name" binding:"required"`
-	Email      string `json:"email"`
-	Phone      string `json:"phone"`
-	Department string `json:"department"`
-	RoleID     uint   `json:"role_id" binding:"required"`
+	Username      string `json:"username" binding:"required"`
+	Password      string `json:"password" binding:"required"`
+	Name          string `json:"name" binding:"required"`
+	Email         string `json:"email"`
+	Phone         string `json:"phone"`
+	Department    string `json:"department"`
+	FunctionGroup string `json:"function_group"`
+	RoleID        uint   `json:"role_id" binding:"required"`
 }
 
 // UpdateUserRequest 更新用户请求
 type UpdateUserRequest struct {
-	Name       string `json:"name"`
-	Email      string `json:"email"`
-	Phone      string `json:"phone"`
-	Department string `json:"department"`
-	RoleID     uint   `json:"role_id"`
-	Status     *int   `json:"status"`
+	Name          string `json:"name"`
+	Email         string `json:"email"`
+	Phone         string `json:"phone"`
+	Department    string `json:"department"`
+	FunctionGroup string `json:"function_group"`
+	RoleID        uint   `json:"role_id"`
+	Status        *int   `json:"status"`
 }
 
 // List 获取用户列表
@@ -77,21 +79,6 @@ func (uc *UserController) Create(c *gin.Context) {
 		return
 	}
 
-	// 验证部门是否合法
-	if req.Department != "" {
-		validDept := false
-		for _, dept := range config.AllowedDepartments {
-			if req.Department == dept {
-				validDept = true
-				break
-			}
-		}
-		if !validDept {
-			utils.BadRequest(c, "部门信息不合法，请选择：BMS研发部、PACK研发部、综合部、外部单位")
-			return
-		}
-	}
-
 	db := config.GetDB()
 
 	// 检查用户名是否存在
@@ -109,14 +96,15 @@ func (uc *UserController) Create(c *gin.Context) {
 	}
 
 	user := models.User{
-		Username:   req.Username,
-		Password:   hashedPassword,
-		Name:       req.Name,
-		Email:      req.Email,
-		Phone:      req.Phone,
-		Department: req.Department,
-		RoleID:     req.RoleID,
-		Status:     1,
+		Username:      req.Username,
+		Password:      hashedPassword,
+		Name:          req.Name,
+		Email:         req.Email,
+		Phone:         req.Phone,
+		Department:    req.Department,
+		FunctionGroup: req.FunctionGroup,
+		RoleID:        req.RoleID,
+		Status:        1,
 	}
 
 	if err := db.Create(&user).Error; err != nil {
@@ -172,19 +160,10 @@ func (uc *UserController) Update(c *gin.Context) {
 		updates["phone"] = req.Phone
 	}
 	if req.Department != "" {
-		// 验证部门是否合法
-		validDept := false
-		for _, dept := range config.AllowedDepartments {
-			if req.Department == dept {
-				validDept = true
-				break
-			}
-		}
-		if !validDept {
-			utils.BadRequest(c, "部门信息不合法，请选择：BMS研发部、PACK研发部、综合部、外部单位")
-			return
-		}
 		updates["department"] = req.Department
+	}
+	if req.FunctionGroup != "" {
+		updates["function_group"] = req.FunctionGroup
 	}
 	if req.RoleID != 0 {
 		updates["role_id"] = req.RoleID

@@ -15,6 +15,7 @@ type User struct {
 	Email        string         `gorm:"size:100" json:"email"`
 	Phone        string         `gorm:"size:20" json:"phone"`
 	Department   string         `gorm:"size:100" json:"department"`
+	FunctionGroup string        `gorm:"size:100" json:"function_group"`
 	RoleID       uint           `json:"role_id"`
 	Role         *Role          `gorm:"foreignKey:RoleID" json:"role,omitempty"`
 	Status       int            `gorm:"default:1" json:"status"` // 1:启用 0:禁用

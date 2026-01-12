@@ -31,23 +31,24 @@
 
     <el-card>
       <el-table v-loading="loading" :data="users" stripe>
-        <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="name" label="姓名" width="120" />
-        <el-table-column prop="role" label="角色" width="120">
+        <el-table-column prop="username" label="用户名" width="120" header-align="center" align="center" />
+        <el-table-column prop="name" label="姓名" width="120" header-align="center" align="center" />
+        <el-table-column prop="role" label="角色" width="120" header-align="center" align="center">
           <template #default="{ row }">{{ row.role?.name || '-' }}</template>
         </el-table-column>
-        <el-table-column prop="department" label="部门" width="150" />
-        <el-table-column prop="email" label="邮箱" width="180" />
-        <el-table-column prop="phone" label="手机号" width="130" />
-        <el-table-column prop="status" label="状态" width="80">
+        <el-table-column prop="department" label="部门" width="170" header-align="center" align="center" />
+        <el-table-column prop="function_group" label="职能组" width="170" header-align="center" align="center" />
+        <el-table-column prop="email" label="邮箱" width="200" header-align="center" align="center" />
+        <el-table-column prop="phone" label="手机号" width="140" header-align="center" align="center" />
+        <el-table-column prop="status" label="状态" width="90" header-align="center" align="center">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="created_at" label="创建时间" width="160">
+        <el-table-column prop="created_at" label="创建时间" width="170" header-align="center" align="center">
           <template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="220" header-align="center" align="center" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="showEditDialog(row)">编辑</el-button>
             <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
@@ -90,11 +91,38 @@
           </el-select>
         </el-form-item>
         <el-form-item label="部门" prop="department">
-          <el-select v-model="form.department" placeholder="请选择部门">
-            <el-option label="BMS研发部" value="BMS研发部" />
-            <el-option label="PACK研发部" value="PACK研发部" />
-            <el-option label="综合部" value="综合部" />
-            <el-option label="外部单位" value="外部单位" />
+          <el-select
+            v-model="form.department"
+            placeholder="请选择部门"
+            filterable
+            allow-create
+            default-first-option
+            @change="handleDepartmentChange"
+          >
+            <el-option
+              v-for="dept in departmentOptions"
+              :key="dept"
+              :label="dept"
+              :value="dept"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="职能组" prop="function_group">
+          <el-select
+            v-model="form.function_group"
+            placeholder="请选择职能组"
+            filterable
+            allow-create
+            default-first-option
+            :disabled="!form.department"
+            @change="handleFunctionGroupChange"
+          >
+            <el-option
+              v-for="group in getFunctionGroups(form.department)"
+              :key="group"
+              :label="group"
+              :value="group"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="邮箱">
@@ -132,14 +160,25 @@ const formRef = ref(null)
 
 const searchForm = reactive({ keyword: '', role_id: '', status: '' })
 const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
-const form = reactive({ username: '', password: '', name: '', role_id: null, department: '', email: '', phone: '', status: 1 })
+const form = reactive({ username: '', password: '', name: '', role_id: null, department: '', function_group: '', email: '', phone: '', status: 1 })
+
+const departmentOptions = ref([
+  '成都科技创新中心',
+  '外协单位'
+])
+
+const functionGroupMap = reactive({
+  '成都科技创新中心': ['BMS研发组', 'PACK研发组', '综合管理组'],
+  '外协单位': ['支撑组']
+})
 
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   role_id: [{ required: true, message: '请选择角色', trigger: 'change' }],
-  department: [{ required: true, message: '请选择部门', trigger: 'change' }]
+  department: [{ required: true, message: '请选择部门', trigger: 'change' }],
+  function_group: [{ required: true, message: '请选择职能组', trigger: 'change' }]
 }
 
 const formatDateTime = (dateStr) => dateStr ? new Date(dateStr).toLocaleString('zh-CN') : '-'
@@ -171,17 +210,53 @@ const fetchRoles = async () => {
 const handleSearch = () => { pagination.page = 1; fetchUsers() }
 const resetSearch = () => { searchForm.keyword = ''; searchForm.role_id = ''; searchForm.status = ''; handleSearch() }
 
+const getFunctionGroups = (dept) => {
+  return functionGroupMap[dept] || []
+}
+
+const handleDepartmentChange = (value) => {
+  if (value && !departmentOptions.value.includes(value)) {
+    departmentOptions.value.push(value)
+  }
+  if (!functionGroupMap[value]) {
+    functionGroupMap[value] = []
+  }
+  form.function_group = ''
+}
+
+const handleFunctionGroupChange = (value) => {
+  const dept = form.department
+  if (!dept) return
+  if (!functionGroupMap[dept]) {
+    functionGroupMap[dept] = []
+  }
+  if (value && !functionGroupMap[dept].includes(value)) {
+    functionGroupMap[dept].push(value)
+  }
+}
+
 const showCreateDialog = () => {
   isEdit.value = false
   editId.value = null
-  Object.assign(form, { username: '', password: '', name: '', role_id: null, department: '', email: '', phone: '', status: 1 })
+  Object.assign(form, { username: '', password: '', name: '', role_id: null, department: '', function_group: '', email: '', phone: '', status: 1 })
   dialogVisible.value = true
 }
 
 const showEditDialog = (row) => {
   isEdit.value = true
   editId.value = row.id
-  Object.assign(form, { username: row.username, password: '', name: row.name, role_id: row.role_id, department: row.department, email: row.email, phone: row.phone, status: row.status })
+  if (row.department && !departmentOptions.value.includes(row.department)) {
+    departmentOptions.value.push(row.department)
+  }
+  if (row.department && row.function_group) {
+    if (!functionGroupMap[row.department]) {
+      functionGroupMap[row.department] = []
+    }
+    if (!functionGroupMap[row.department].includes(row.function_group)) {
+      functionGroupMap[row.department].push(row.function_group)
+    }
+  }
+  Object.assign(form, { username: row.username, password: '', name: row.name, role_id: row.role_id, department: row.department, function_group: row.function_group || '', email: row.email, phone: row.phone, status: row.status })
   dialogVisible.value = true
 }
 
