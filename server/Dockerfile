@@ -1,5 +1,6 @@
 # 构建阶段
-FROM golang:1.24.3-alpine AS builder
+#FROM golang:1.24.3-alpine AS builder
+FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/golang:1.24.3-alpine3.21 AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -22,7 +23,8 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 # 运行阶段
-FROM alpine:3.19
+#FROM alpine:3.19
+FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/alpine:3.19.1
 
 # 安装ca证书和时区数据
 RUN apk --no-cache add ca-certificates tzdata wget

@@ -12,18 +12,19 @@ var (
 	JWTExpireTime = time.Hour * 24 // Token有效期24小时
 
 	// 服务器配置
-	ServerPort = getEnv("SERVER_PORT", ":8080")
+	ServerPort = getEnv("SERVER_PORT", ":8082")
 
 	// 文件上传配置
 	UploadPath  = getEnv("UPLOAD_PATH", "./uploads")
 	MaxFileSize = int64(100 * 1024 * 1024) // 100MB
 
 	// 数据库配置（MySQL）
-	DBHost     = getEnv("DB_HOST", "localhost")
-	DBPort     = getEnv("DB_PORT", "3306")
-	DBUser     = getEnv("DB_USER", "root")
-	DBPassword = getEnv("DB_PASSWORD", "")
-	DBName     = getEnv("DB_NAME", "project_flow")
+	DBHost     = getEnv("DB_HOST", "172.17.7.180")
+	DBPort     = getEnv("DB_PORT", "3307")
+	DBUser     = getEnv("DB_USER", "project_track")
+	DBPassword = getEnv("DB_PASSWORD", "project_track_password")
+	DBName     = getEnv("DB_NAME", "project_track")
+	//DBName     = getEnv("DB_NAME", "project_flow")
 
 	// 密码复杂度要求
 	MinPasswordLength = 8
