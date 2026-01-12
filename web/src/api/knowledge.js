@@ -23,7 +23,8 @@ export function getKnowledge(id) {
 // 上传资料
 export function uploadKnowledge(formData) {
   return request.post('/knowledge/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300000
   })
 }
 
@@ -40,7 +41,8 @@ export function deleteKnowledge(id) {
 // 上传新版本
 export function uploadNewVersion(id, formData) {
   return request.post(`/knowledge/${id}/version`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300000
   })
 }
 

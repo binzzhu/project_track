@@ -398,7 +398,7 @@ const phaseForm = reactive({ phase_name: '' })
 
 const taskRules = { task_name: [{ required: true, message: '请输入任务名称', trigger: 'blur' }] }
 
-const uploadUrl = '/api/documents/upload'
+const uploadUrl = '/project_track/api/documents/upload'
 const uploadHeaders = computed(() => ({ Authorization: `Bearer ${localStorage.getItem('token')}` }))
 
 // 权限判断：是否可以编辑项目（管理员或项目负责人）
