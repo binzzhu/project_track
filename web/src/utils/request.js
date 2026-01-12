@@ -3,9 +3,9 @@ import { ElMessage } from 'element-plus'
 import router from '@/router'
 
 // 创建axios实例
-// 生产环境使用相对路径，开发环境通过vite代理
+// 使用 /project_track/api 作为统一前缀，生产环境为子路径部署，开发环境通过vite代理
 const request = axios.create({
-  baseURL: '/api',
+  baseURL: '/project_track/api',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
