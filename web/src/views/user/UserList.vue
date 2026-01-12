@@ -31,7 +31,7 @@
 
     <el-card>
       <el-table v-loading="loading" :data="users" stripe>
-        <el-table-column prop="username" label="用户名" width="120" header-align="center" align="center" />
+        <el-table-column prop="username" label="用户名" width="160" header-align="center" align="center" />
         <el-table-column prop="name" label="姓名" width="120" header-align="center" align="center" />
         <el-table-column prop="role" label="角色" width="120" header-align="center" align="center">
           <template #default="{ row }">{{ row.role?.name || '-' }}</template>
