@@ -362,7 +362,7 @@ func (dc *DocumentController) Delete(c *gin.Context) {
 		os.Remove(doc.FilePath)
 	}
 
-	if err := db.Delete(&doc).Error; err != nil {
+	if err := db.Unscoped().Delete(&doc).Error; err != nil {
 		utils.ServerError(c, "删除失败")
 		return
 	}

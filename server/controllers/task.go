@@ -366,7 +366,7 @@ func (tc *TaskController) Delete(c *gin.Context) {
 		}
 	}
 
-	if err := db.Delete(&task).Error; err != nil {
+	if err := db.Unscoped().Delete(&task).Error; err != nil {
 		utils.ServerError(c, "删除失败")
 		return
 	}

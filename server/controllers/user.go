@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 )
 
 type UserController struct{}
@@ -108,6 +109,10 @@ func (uc *UserController) Create(c *gin.Context) {
 	}
 
 	if err := db.Create(&user).Error; err != nil {
+		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+			utils.Error(c, 400, "用户名已存在")
+			return
+		}
 		utils.ServerError(c, "创建用户失败")
 		return
 	}
@@ -194,7 +199,7 @@ func (uc *UserController) Delete(c *gin.Context) {
 		return
 	}
 
-	if err := db.Delete(&user).Error; err != nil {
+	if err := db.Unscoped().Delete(&user).Error; err != nil {
 		utils.ServerError(c, "删除失败")
 		return
 	}

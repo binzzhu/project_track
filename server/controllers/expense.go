@@ -220,7 +220,7 @@ func (ec *ExpenseController) Delete(c *gin.Context) {
 		}
 	}
 
-	db.Delete(&expense)
+	db.Unscoped().Delete(&expense)
 
 	// 记录日志
 	middleware.LogOperation(c, "delete", "expense", "expense", expense.ID, expense.DocumentNo, "删除费用记录", "success")
@@ -651,8 +651,8 @@ func (ec *ExpenseController) DeleteAll(c *gin.Context) {
 		}
 	}
 
-	// 执行删除（软删除）
-	result := db.Where("1 = 1").Delete(&models.Expense{})
+	// 执行删除
+	result := db.Unscoped().Where("1 = 1").Delete(&models.Expense{})
 	if result.Error != nil {
 		utils.ServerError(c, fmt.Sprintf("删除失败: %v", result.Error))
 		return

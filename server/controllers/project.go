@@ -291,8 +291,7 @@ func (pc *ProjectController) Delete(c *gin.Context) {
 		return
 	}
 
-	// 软删除项目
-	if err := db.Delete(&project).Error; err != nil {
+	if err := db.Unscoped().Delete(&project).Error; err != nil {
 		utils.ServerError(c, "删除失败")
 		return
 	}

@@ -283,7 +283,7 @@ func (kc *KnowledgeController) Delete(c *gin.Context) {
 		os.Remove(kb.FilePath)
 	}
 
-	if err := db.Delete(&kb).Error; err != nil {
+	if err := db.Unscoped().Delete(&kb).Error; err != nil {
 		utils.ServerError(c, "删除失败")
 		return
 	}
@@ -474,7 +474,7 @@ func (kc *KnowledgeController) DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	db.Delete(&category)
+	db.Unscoped().Delete(&category)
 
 	utils.SuccessWithMessage(c, "删除成功", nil)
 }
