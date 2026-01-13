@@ -721,10 +721,12 @@ func (ec *ExpenseController) Export(c *gin.Context) {
 		row := rowIndex + 2
 
 		projectName := "-"
-		if exp.Project != nil && exp.Project.InnovationCode != "" {
-			projectName = fmt.Sprintf("%s - %s", exp.Project.InnovationCode, exp.Project.Name)
-		} else if exp.ProjectCode != "" {
-			projectName = exp.ProjectCode
+		if exp.Project != nil {
+			if exp.Project.InnovationCode != "" {
+				projectName = fmt.Sprintf("%s - %s", exp.Project.InnovationCode, exp.Project.Name)
+			} else if exp.Project.Name != "" {
+				projectName = exp.Project.Name
+			}
 		}
 
 		expenseTypeText := "-"
