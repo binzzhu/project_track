@@ -3,8 +3,14 @@
 .env.local
 
 # 数据目录
-data/
 backups/
+
+# 忽略 data/db 和 data/uploads 中所有文件，但保留目录本身
+data/db/*
+!data/db/
+
+data/uploads/*
+!data/uploads/
 
 # IDE
 .idea/
