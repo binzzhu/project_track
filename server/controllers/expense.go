@@ -508,6 +508,10 @@ func (ec *ExpenseController) ImportExpenses(c *gin.Context) {
 			IsClassified:         false,                         // 默认未归类
 		}
 
+		if expense.BusinessScene != "境内差旅费" {
+			expense.AllocationAmount = expense.InvoiceAmountExclTax
+		}
+
 		expenses = append(expenses, expense)
 	}
 
@@ -664,6 +668,130 @@ func (ec *ExpenseController) DeleteAll(c *gin.Context) {
 		"一键删除所有费用记录", "success")
 
 	utils.SuccessWithMessage(c, fmt.Sprintf("成功删除%d条记录", count), nil)
+}
+
+// Export 导出所有费用记录为Excel（列与前端费用列表保持一致）
+func (ec *ExpenseController) Export(c *gin.Context) {
+	db := config.GetDB()
+
+	var expenses []models.Expense
+	if err := db.
+		Preload("Project").
+		Preload("ReimbursedUser").
+		Order("created_at DESC").
+		Find(&expenses).Error; err != nil {
+		utils.ServerError(c, "查询费用记录失败")
+		return
+	}
+
+	f := excelize.NewFile()
+	sheetName := "费用记录"
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		utils.ServerError(c, "创建工作表失败")
+		return
+	}
+	f.SetActiveSheet(index)
+
+	headers := []string{
+		"关联项目",
+		"费用类型",
+		"报账人",
+		"单据编号",
+		"摘要",
+		"报账金额",
+		"支付金额",
+		"发票不含税金额",
+		"发票含税金额",
+		"分摊金额",
+		"业务场景",
+		"单据状态",
+		"提交时间",
+		"单位名称",
+		"部门名称",
+	}
+
+	for i, h := range headers {
+		col, _ := excelize.ColumnNumberToName(i + 1)
+		cell := fmt.Sprintf("%s1", col)
+		f.SetCellValue(sheetName, cell, h)
+	}
+
+	for rowIndex, exp := range expenses {
+		row := rowIndex + 2
+
+		projectName := "-"
+		if exp.Project != nil && exp.Project.InnovationCode != "" {
+			projectName = fmt.Sprintf("%s - %s", exp.Project.InnovationCode, exp.Project.Name)
+		} else if exp.ProjectCode != "" {
+			projectName = exp.ProjectCode
+		}
+
+		expenseTypeText := "-"
+		switch exp.ExpenseType {
+		case "labor":
+			expenseTypeText = "人工费用"
+		case "direct":
+			expenseTypeText = "直接投入费用"
+		case "outsourcing":
+			expenseTypeText = "委托研发费用"
+		case "other":
+			expenseTypeText = "其他费用"
+		}
+
+		reimbursedName := "-"
+		if exp.ReimbursedUser != nil && exp.ReimbursedUser.Name != "" {
+			reimbursedName = exp.ReimbursedUser.Name
+		} else if exp.ReimbursedPersonName != "" {
+			reimbursedName = exp.ReimbursedPersonName
+		}
+
+		submitTimeStr := ""
+		if exp.SubmitTime != nil {
+			submitTimeStr = exp.SubmitTime.Format("2006-01-02 15:04:05")
+		}
+
+		reimbursementAmountStr := fmt.Sprintf("%.2f", exp.ReimbursementAmount)
+		paymentAmountStr := fmt.Sprintf("%.2f", exp.PaymentAmount)
+		invoiceExclTaxStr := fmt.Sprintf("%.2f", exp.InvoiceAmountExclTax)
+		invoiceInclTaxStr := fmt.Sprintf("%.2f", exp.InvoiceAmountInclTax)
+		allocationAmountStr := fmt.Sprintf("%.2f", exp.AllocationAmount)
+
+		values := []interface{}{
+			projectName,
+			expenseTypeText,
+			reimbursedName,
+			exp.DocumentNo,
+			exp.Summary,
+			reimbursementAmountStr,
+			paymentAmountStr,
+			invoiceExclTaxStr,
+			invoiceInclTaxStr,
+			allocationAmountStr,
+			exp.BusinessScene,
+			exp.DocumentStatus,
+			submitTimeStr,
+			exp.UnitName,
+			exp.DepartmentName,
+		}
+
+		for colIndex, val := range values {
+			col, _ := excelize.ColumnNumberToName(colIndex + 1)
+			cell := fmt.Sprintf("%s%d", col, row)
+			f.SetCellValue(sheetName, cell, val)
+		}
+	}
+
+	buffer, err := f.WriteToBuffer()
+	if err != nil {
+		utils.ServerError(c, "生成Excel失败")
+		return
+	}
+
+	filename := fmt.Sprintf("expenses_%s.xlsx", time.Now().Format("20060102150405"))
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	c.Data(200, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer.Bytes())
 }
 
 // 辅助函数

@@ -146,6 +146,9 @@
       <el-button type="success" @click="showImportDialog">
         <el-icon><Upload /></el-icon> 导入Excel
       </el-button>
+      <el-button type="primary" @click="handleExportAll">
+        <el-icon><Download /></el-icon> 导出所有记录
+      </el-button>
       <el-button type="primary" @click="showCreateDialog">
         <el-icon><Plus /></el-icon> 添加费用记录
       </el-button>
@@ -202,6 +205,12 @@
         <el-table-column prop="document_status" label="单据状态" width="120" header-align="center" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.document_status" size="small">{{ row.document_status }}</el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="submit_time" label="提交时间" width="180" header-align="center" align="center">
+          <template #default="{ row }">
+            <span v-if="row.submit_time">{{ row.submit_time }}</span>
             <span v-else>-</span>
           </template>
         </el-table-column>
@@ -358,7 +367,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getExpenses, createExpense, updateExpense, deleteExpense, getProjectComparison, getNonProjectExpenseStats, importExpenses, deleteAllExpenses } from '@/api/expense'
+import { getExpenses, createExpense, updateExpense, deleteExpense, getProjectComparison, getNonProjectExpenseStats, importExpenses, deleteAllExpenses, exportExpenses } from '@/api/expense'
 import { getProjects } from '@/api/project'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -641,6 +650,35 @@ const handleImport = async () => {
     ElMessage.error('导入失败')
   } finally {
     importing.value = false
+  }
+}
+
+const handleExportAll = async () => {
+  try {
+    const res = await exportExpenses()
+    const blob = new Blob([res.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    let fileName = '费用记录.xlsx'
+    const contentDisposition = res.headers['content-disposition']
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="?([^";]+)"?/)
+      if (match && match[1]) {
+        fileName = decodeURIComponent(match[1])
+      }
+    }
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    ElMessage.success('导出成功')
+  } catch (error) {
+    console.error('导出失败:', error)
+    ElMessage.error('导出失败')
   }
 }
 

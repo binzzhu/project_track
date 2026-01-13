@@ -159,13 +159,14 @@ func SetupRoutes(r *gin.Engine) {
 				logs.GET("/statistics", logCtrl.GetStatistics)
 			}
 
-			// 费用管理（所有用户可查看自己的费用，管理员可查看所有）
+			// 费用管理（所有用户可查看费用及导出，管理员可执行部分高级操作）
 			expenses := auth.Group("/expenses")
 			{
 				expenses.GET("", expenseCtrl.List)
 				expenses.GET("/statistics", expenseCtrl.GetStatistics)
 				expenses.GET("/comparison", expenseCtrl.GetProjectComparison)
 				expenses.GET("/non-project-stats", expenseCtrl.GetNonProjectExpenseStats) // 非研发项目费用统计
+				expenses.GET("/export", expenseCtrl.Export)
 				expenses.GET("/:id", expenseCtrl.Get)
 				expenses.POST("", expenseCtrl.Create)
 				expenses.PUT("/:id", expenseCtrl.Update)

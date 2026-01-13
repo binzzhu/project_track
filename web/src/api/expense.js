@@ -53,3 +53,10 @@ export function importExpenses(formData) {
 export function deleteAllExpenses() {
   return request.delete('/expenses/all')
 }
+
+// 导出所有费用记录为Excel（仅管理员）
+export function exportExpenses() {
+  return request.get('/expenses/export', {
+    responseType: 'blob'
+  })
+}
