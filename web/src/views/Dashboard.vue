@@ -327,8 +327,8 @@ const fetchData = async () => {
     const [projectStatsRes, taskStatsRes, projectsRes, tasksRes, expenseRes, nonProjectRes] = await Promise.all([
       getProjectStatistics(),
       getTaskStatistics(),
-      getProjects({ page: 1, page_size: 5 }),
-      getMyTasks({ page: 1, page_size: 5, status: 'not_started,in_progress' }),
+      getProjects({ page: 1, page_size: 20 }),
+      getMyTasks({ page: 1, page_size: 20, status: 'not_started,in_progress' }),
       getProjectComparison(),
       getNonProjectExpenseStats()
     ])

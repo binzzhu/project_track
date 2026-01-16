@@ -59,13 +59,18 @@
         <el-table-column prop="manager" label="项目负责人" width="120" header-align="center" align="center">
           <template #default="{ row }">{{ row.manager?.name || '-' }}</template>
         </el-table-column>
-        <el-table-column prop="contract_no" label="合同编号" min-width="150" header-align="center" align="center">
-          <template #default="{ row }">{{ row.contract_no || '-' }}</template>
+        <el-table-column prop="contract_no" label="合同编号" min-width="260" header-align="center" align="center">
+          <template #default="{ row }">
+            <div v-if="row.contract_no">
+              <div v-for="(no, index) in splitContractNos(row.contract_no)" :key="index">{{ no }}</div>
+            </div>
+            <span v-else>-</span>
+          </template>
         </el-table-column>
-        <el-table-column prop="budget_code" label="预算编码" min-width="150" header-align="center" align="center">
+        <el-table-column prop="budget_code" label="预算编码" min-width="260" header-align="center" align="center">
           <template #default="{ row }">{{ row.budget_code || '-' }}</template>
         </el-table-column>
-        <el-table-column prop="innovation_code" label="创新项目编码" min-width="150" header-align="center" align="center">
+        <el-table-column prop="innovation_code" label="创新项目编码" min-width="260" header-align="center" align="center">
           <template #default="{ row }">{{ row.innovation_code || '-' }}</template>
         </el-table-column>
         <el-table-column prop="initiation_date" label="立项日期" width="120" header-align="center" align="center">
@@ -132,7 +137,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="合同编号">
-          <el-input v-model="form.contract_no" placeholder="立项结束后补充（非必填）" />
+          <el-input v-model="form.contract_no" placeholder="多个编号请用英文逗号分隔，立项结束后补充（非必填）" />
         </el-form-item>
         <el-form-item label="预算编码">
           <el-input v-model="form.budget_code" placeholder="立项结束后补充（非必填）" />
@@ -262,6 +267,11 @@ const statusTypes = {
   not_started: 'info',
   in_progress: 'primary',
   completed: 'success'
+}
+
+const splitContractNos = (val) => {
+  if (!val) return []
+  return val.split(',').map(item => item.trim()).filter(item => item)
 }
 
 // 格式化日期

@@ -29,7 +29,14 @@
         <el-descriptions-item label="项目状态">
           <el-tag :type="statusTypes[project.status]">{{ statusLabels[project.status] }}</el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="合同编号">{{ project.contract_no || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="合同编号">
+          <template #default>
+            <div v-if="project.contract_no">
+              <div v-for="(no, index) in splitContractNos(project.contract_no)" :key="index">{{ no }}</div>
+            </div>
+            <span v-else>-</span>
+          </template>
+        </el-descriptions-item>
         <el-descriptions-item label="预算编码">{{ project.budget_code || '-' }}</el-descriptions-item>
         <el-descriptions-item label="创新项目编码">{{ project.innovation_code || '-' }}</el-descriptions-item>
         <el-descriptions-item label="人工费用">{{ project.labor_cost ? `¥${project.labor_cost.toLocaleString()}` : '-' }}</el-descriptions-item>
@@ -457,6 +464,11 @@ const formatFileSize = (bytes) => {
   let i = 0
   while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++ }
   return `${bytes.toFixed(1)} ${units[i]}`
+}
+
+const splitContractNos = (val) => {
+  if (!val) return []
+  return val.split(',').map(item => item.trim()).filter(item => item)
 }
 
 const getPhaseStatus = (phase) => {
